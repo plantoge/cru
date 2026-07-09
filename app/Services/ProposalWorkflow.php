@@ -101,9 +101,15 @@ class ProposalWorkflow
     {
         $tahun = (int) now()->year;
 
+        // PG melarang FOR UPDATE + agregat; pakai advisory lock per tahun
+        // (rilis otomatis saat transaksi selesai). Unique(tahun,nomor) tetap
+        // jadi jaring pengaman terakhir.
+        if (DB::connection()->getDriverName() === 'pgsql') {
+            DB::statement('select pg_advisory_xact_lock(?)', [$tahun]);
+        }
+
         $nomor = (int) Proposal::withTrashed()
             ->where('tahun', $tahun)
-            ->lockForUpdate()
             ->max('nomor') + 1;
 
         $kode = sprintf('RSPISS-%d-%03d', $tahun, $nomor);
