@@ -1,0 +1,13 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(ls -d /d/app/*/ 2>/dev/null)",
+      "Read(//d/app/**)",
+      "Read(//d/app/eproposal/**)",
+      "Bash(grep -E '\"\\(laravel/framework|livewire|php\\)\"' composer.json)",
+      "Bash(grep -vE '^\\\\s*#|^\\\\s*$')",
+      "Read(//c/Users/simrs/AppData/Local/Temp/claude/d--app-eproposalnew/37aeb924-8d69-41d3-9122-4980b3bd8e8f/tasks/**)",
+      "Bash(break)"
+    ]
+  }
+}
