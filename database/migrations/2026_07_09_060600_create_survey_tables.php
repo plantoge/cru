@@ -1,0 +1,87 @@
+<?php
+
+use Illuminate\Database\Migrations\Migration;
+use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Schema;
+
+return new class extends Migration
+{
+    public function up(): void
+    {
+        Schema::create('master_aspek', function (Blueprint $t) {
+            $t->uuid('id')->primary();
+            $t->string('nama_aspek');
+            $t->string('deskripsi')->nullable();
+            $t->unsignedInteger('urutan')->default(0);
+            $t->boolean('status_aktif')->default(true);
+            $t->timestamps();
+            $t->softDeletes();
+            $t->auditColumns();
+        });
+
+        Schema::create('master_pertanyaan', function (Blueprint $t) {
+            $t->uuid('id')->primary();
+            $t->uuid('master_aspek_id');
+            $t->text('pertanyaan');
+            $t->boolean('is_required')->default(true);
+            $t->unsignedInteger('urutan')->default(0);
+            $t->boolean('status_aktif')->default(true);
+            $t->timestamps();
+            $t->softDeletes();
+            $t->auditColumns();
+
+            $t->index('master_aspek_id');
+        });
+
+        Schema::create('master_skala', function (Blueprint $t) {
+            $t->uuid('id')->primary();
+            $t->string('nama_skala');
+            $t->integer('nilai');
+            $t->unsignedInteger('urutan')->default(0);
+            $t->timestamps();
+            $t->softDeletes();
+            $t->auditColumns();
+        });
+
+        Schema::create('respon', function (Blueprint $t) {
+            $t->uuid('id')->primary();
+            $t->uuid('proposal_id');                 // D5: gate survey per proposal
+            $t->uuid('responden_id');
+            $t->string('responden')->nullable();     // snapshot nama
+            $t->string('jenis_responden')->nullable();
+            $t->text('saran')->nullable();
+            $t->timestamps();
+            $t->softDeletes();
+            $t->auditColumns();
+
+            $t->index('responden_id');
+        });
+
+        // Satu survey aktif per proposal — partial unique agar baris soft-deleted tak menghalangi
+        DB::statement('create unique index respon_proposal_id_unique on respon (proposal_id) where deleted_at is null');
+
+        Schema::create('jawaban', function (Blueprint $t) {
+            $t->uuid('id')->primary();
+            $t->uuid('respon_id');
+            $t->uuid('master_pertanyaan_id');
+            $t->uuid('master_skala_id');
+            $t->text('pertanyaan')->nullable();      // snapshot teks
+            $t->text('jawaban')->nullable();         // snapshot nilai
+            $t->timestamps();
+            $t->softDeletes();
+            $t->auditColumns();
+
+            $t->index('respon_id');
+        });
+    }
+
+    public function down(): void
+    {
+        Schema::dropIfExists('jawaban');
+        Schema::dropIfExists('respon');
+        Schema::dropIfExists('master_skala');
+        Schema::dropIfExists('master_pertanyaan');
+        Schema::dropIfExists('master_aspek');
+    }
+};

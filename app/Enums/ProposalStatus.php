@@ -1,0 +1,123 @@
+<?php
+
+namespace App\Enums;
+
+enum ProposalStatus: string
+{
+    case MenungguVerifikasiBerkas = 'Menunggu Verifikasi Berkas';
+    case PerluRevisiProposal = 'Perlu Revisi Proposal';
+    case MenungguVerifikasiRevisi = 'Menunggu Verifikasi Revisi';
+    case MenungguPresentasi = 'Menunggu Presentasi';
+    case Ditolak = 'Ditolak';
+    case MenungguKelengkapanBerkasEtik = 'Menunggu Kelengkapan Berkas Etik';
+    case MenungguReviewReviewer = 'Menunggu Review Reviewer';
+    case PerluRevisiReviewer = 'Perlu Revisi Reviewer';
+    case DisetujuiReviewer = 'Disetujui Reviewer';
+    case DitolakKajiEtik = 'Ditolak Kaji Etik';
+    case MenungguPembayaran = 'Menunggu Pembayaran';
+    case MenungguVerifikasiPembayaran = 'Menunggu Verifikasi Pembayaran';
+    case PelaksanaanPenelitian = 'Pelaksanaan Penelitian';
+    case MenungguVerifikasiAkhir = 'Menunggu Verifikasi Akhir';
+    case MenungguSurveyKepuasan = 'Menunggu Survey Kepuasan';
+    case Selesai = 'Selesai';
+    case Dibatalkan = 'Dibatalkan';
+
+    /** Tahapan diturunkan dari status (null = terminal, keputusan D1). */
+    public function tahapan(): ?int
+    {
+        return match ($this) {
+            self::MenungguVerifikasiBerkas, self::PerluRevisiProposal,
+            self::MenungguVerifikasiRevisi, self::MenungguPresentasi => 1,
+            self::MenungguKelengkapanBerkasEtik, self::MenungguReviewReviewer,
+            self::PerluRevisiReviewer, self::DisetujuiReviewer => 2,
+            self::MenungguPembayaran, self::MenungguVerifikasiPembayaran => 3,
+            self::PelaksanaanPenelitian, self::MenungguVerifikasiAkhir,
+            self::MenungguSurveyKepuasan => 4,
+            self::Selesai, self::Ditolak, self::DitolakKajiEtik, self::Dibatalkan => null,
+        };
+    }
+
+    /** Unit pemegang diturunkan dari status (null = selesai/batal). */
+    public function unit(): ?Unit
+    {
+        return match ($this) {
+            self::MenungguReviewReviewer, self::PerluRevisiReviewer => Unit::Reviewer,
+            self::MenungguKelengkapanBerkasEtik, self::DisetujuiReviewer,
+            self::DitolakKajiEtik => Unit::KajiEtik,
+            self::Selesai, self::Dibatalkan => null,
+            default => Unit::Penelitian,
+        };
+    }
+
+    /**
+     * Status berikutnya yang sah (peta alur — cegah loncat).
+     * Termasuk transisi mundur keputusan D4. `Dibatalkan` tidak dicantumkan
+     * di sini; ia diizinkan dari semua status non-terminal via canGoTo().
+     *
+     * @return self[]
+     */
+    public function allowedNext(): array
+    {
+        return match ($this) {
+            // Tahap 1 (CRU)
+            self::MenungguVerifikasiBerkas => [self::PerluRevisiProposal, self::MenungguPresentasi, self::Ditolak],
+            self::PerluRevisiProposal => [self::MenungguVerifikasiRevisi],
+            self::MenungguVerifikasiRevisi => [self::PerluRevisiProposal, self::MenungguPresentasi, self::Ditolak],
+            self::MenungguPresentasi => [self::MenungguKelengkapanBerkasEtik, self::PerluRevisiProposal, self::Ditolak],
+            // Tahap 2 (KEPK + Reviewer)
+            self::MenungguKelengkapanBerkasEtik => [self::MenungguReviewReviewer, self::DitolakKajiEtik],
+            self::MenungguReviewReviewer => [self::PerluRevisiReviewer, self::DisetujuiReviewer],
+            self::PerluRevisiReviewer => [self::MenungguReviewReviewer],
+            self::DisetujuiReviewer => [self::MenungguPembayaran, self::DitolakKajiEtik],
+            // Tahap 3 (CRU)
+            self::MenungguPembayaran => [self::MenungguVerifikasiPembayaran],
+            self::MenungguVerifikasiPembayaran => [self::PelaksanaanPenelitian, self::MenungguPembayaran],
+            // Tahap 4 (CRU)
+            self::PelaksanaanPenelitian => [self::MenungguVerifikasiAkhir],
+            self::MenungguVerifikasiAkhir => [self::MenungguSurveyKepuasan, self::PelaksanaanPenelitian],
+            self::MenungguSurveyKepuasan => [self::Selesai],
+            // terminal
+            self::Selesai, self::Ditolak, self::DitolakKajiEtik, self::Dibatalkan => [],
+        };
+    }
+
+    public function canGoTo(self $next): bool
+    {
+        if ($next === self::Dibatalkan) {
+            return ! $this->isTerminal();
+        }
+
+        return in_array($next, $this->allowedNext(), true);
+    }
+
+    public function isTerminal(): bool
+    {
+        return $this->allowedNext() === [];
+    }
+
+    /** Warna badge daisyUI. */
+    public function warna(): string
+    {
+        return match ($this) {
+            self::Selesai => 'badge-success',
+            self::Ditolak, self::DitolakKajiEtik, self::Dibatalkan => 'badge-error',
+            self::PerluRevisiProposal, self::PerluRevisiReviewer => 'badge-warning',
+            self::PelaksanaanPenelitian, self::DisetujuiReviewer => 'badge-info',
+            default => 'badge-neutral',
+        };
+    }
+
+    /** Status yang bolanya di tangan peneliti (perlu aksi peneliti). */
+    public function bolaDiPeneliti(): bool
+    {
+        return in_array($this, [
+            self::PerluRevisiProposal,
+            self::MenungguPresentasi,
+            self::MenungguKelengkapanBerkasEtik,
+            self::PerluRevisiReviewer,
+            self::MenungguPembayaran,
+            self::PelaksanaanPenelitian,
+            self::MenungguSurveyKepuasan,
+        ], true);
+    }
+}
