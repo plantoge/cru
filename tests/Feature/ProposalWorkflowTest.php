@@ -1,0 +1,173 @@
+<?php
+
+namespace Tests\Feature;
+
+use App\Enums\DocumentType;
+use App\Enums\ProposalStatus as S;
+use App\Enums\Unit;
+use App\Models\Proposal;
+use App\Models\User;
+use App\Services\ProposalWorkflow;
+use Database\Seeders\RoleSeeder;
+use Illuminate\Foundation\Testing\RefreshDatabase;
+use Symfony\Component\HttpKernel\Exception\HttpException;
+use Tests\TestCase;
+
+class ProposalWorkflowTest extends TestCase
+{
+    use RefreshDatabase;
+
+    protected ProposalWorkflow $wf;
+
+    protected User $peneliti;
+
+    protected function setUp(): void
+    {
+        parent::setUp();
+        $this->seed(RoleSeeder::class);
+        $this->wf = app(ProposalWorkflow::class);
+        $this->peneliti = User::factory()->create();
+        $this->peneliti->assignRole('peneliti');
+        $this->actingAs($this->peneliti);
+    }
+
+    protected function buatProposal(): Proposal
+    {
+        return $this->wf->ajukan([
+            'peneliti_utama' => 'Dr. Uji',
+            'judul_penelitian' => 'Penelitian Uji',
+            'user_id' => $this->peneliti->id,
+        ]);
+    }
+
+    public function test_pengajuan_membuat_status_awal_kode_dan_history(): void
+    {
+        $p = $this->buatProposal();
+
+        $this->assertSame(S::MenungguVerifikasiBerkas, $p->status);
+        $this->assertSame(Unit::Penelitian, $p->unit_sekarang);
+        $this->assertSame(sprintf('RSPISS-%d-001', now()->year), $p->kode);
+        $this->assertDatabaseHas('proposal_status_history', [
+            'proposal_id' => $p->id,
+            'to_status' => S::MenungguVerifikasiBerkas->value,
+        ]);
+    }
+
+    public function test_nomor_increment_per_tahun(): void
+    {
+        $this->buatProposal();
+        $p2 = $this->buatProposal();
+
+        $this->assertSame(2, $p2->nomor);
+        $this->assertStringEndsWith('-002', $p2->kode);
+    }
+
+    public function test_happy_path_penuh_sampai_selesai(): void
+    {
+        $p = $this->buatProposal();
+
+        $jalur = [
+            S::MenungguPresentasi,
+            S::MenungguKelengkapanBerkasEtik,
+            S::MenungguReviewReviewer,
+            S::DisetujuiReviewer,
+            S::MenungguPembayaran,
+            S::MenungguVerifikasiPembayaran,
+            S::PelaksanaanPenelitian,
+            S::MenungguVerifikasiAkhir,
+            S::MenungguSurveyKepuasan,
+            S::Selesai,
+        ];
+
+        foreach ($jalur as $ke) {
+            $this->wf->transition($p, $ke);
+        }
+
+        $this->assertSame(S::Selesai, $p->fresh()->status);
+        $this->assertTrue($p->fresh()->isi_survey_kepuasan);
+        $this->assertNull($p->fresh()->unit_sekarang);
+        // 1 pengajuan + 10 transisi
+        $this->assertSame(11, $p->statusHistory()->count());
+    }
+
+    public function test_loop_revisi_reviewer_bisa_lebih_dari_sekali(): void
+    {
+        $p = $this->buatProposal();
+        foreach ([S::MenungguPresentasi, S::MenungguKelengkapanBerkasEtik, S::MenungguReviewReviewer] as $ke) {
+            $this->wf->transition($p, $ke);
+        }
+
+        // Dua ronde revisi
+        foreach (range(1, 2) as $i) {
+            $this->wf->transition($p, S::PerluRevisiReviewer);
+            $this->assertSame(Unit::Reviewer, $p->unit_sekarang);
+            $this->wf->transition($p, S::MenungguReviewReviewer);
+        }
+
+        $this->wf->transition($p, S::DisetujuiReviewer);
+        $this->assertSame(Unit::KajiEtik, $p->fresh()->unit_sekarang);
+    }
+
+    public function test_transisi_loncat_ditolak_403(): void
+    {
+        $p = $this->buatProposal();
+
+        $this->expectException(HttpException::class);
+        $this->wf->transition($p, S::MenungguPembayaran); // loncat T1 → T3
+    }
+
+    public function test_transisi_mundur_d4_pembayaran_dan_laporan(): void
+    {
+        $p = $this->buatProposal();
+        foreach ([S::MenungguPresentasi, S::MenungguKelengkapanBerkasEtik, S::MenungguReviewReviewer,
+            S::DisetujuiReviewer, S::MenungguPembayaran, S::MenungguVerifikasiPembayaran] as $ke) {
+            $this->wf->transition($p, $ke);
+        }
+
+        // Bukti bayar ditolak → kembali
+        $this->wf->transition($p, S::MenungguPembayaran, 'Bukti tidak sah');
+        $this->assertSame(S::MenungguPembayaran, $p->fresh()->status);
+
+        foreach ([S::MenungguVerifikasiPembayaran, S::PelaksanaanPenelitian, S::MenungguVerifikasiAkhir] as $ke) {
+            $this->wf->transition($p, $ke);
+        }
+
+        // Laporan ditolak → kembali pelaksanaan
+        $this->wf->transition($p, S::PelaksanaanPenelitian, 'Laporan kurang');
+        $this->assertSame(S::PelaksanaanPenelitian, $p->fresh()->status);
+    }
+
+    public function test_dibatalkan_dari_non_terminal_dan_terminal_terkunci(): void
+    {
+        $p = $this->buatProposal();
+        $this->wf->transition($p, S::Dibatalkan);
+        $this->assertSame(S::Dibatalkan, $p->fresh()->status);
+
+        $this->expectException(HttpException::class);
+        $this->wf->transition($p, S::MenungguPresentasi); // terminal → apa pun ditolak
+    }
+
+    public function test_tolak_kaji_etik_dari_kelengkapan_berkas(): void
+    {
+        $p = $this->buatProposal();
+        foreach ([S::MenungguPresentasi, S::MenungguKelengkapanBerkasEtik] as $ke) {
+            $this->wf->transition($p, $ke);
+        }
+
+        $this->wf->transition($p, S::DitolakKajiEtik, 'Tidak layak etik');
+        $this->assertTrue($p->fresh()->status->isTerminal());
+    }
+
+    public function test_versi_dokumen_bertambah_per_jenis(): void
+    {
+        \Illuminate\Support\Facades\Storage::fake('public');
+        $p = $this->buatProposal();
+        $f = \Illuminate\Http\UploadedFile::fake()->create('proposal.pdf', 100, 'application/pdf');
+
+        $d1 = $this->wf->simpanDokumen($p, DocumentType::Proposal, $f);
+        $d2 = $this->wf->simpanDokumen($p, DocumentType::Proposal, $f);
+
+        $this->assertSame(1, $d1->versi);
+        $this->assertSame(2, $d2->versi);
+    }
+}

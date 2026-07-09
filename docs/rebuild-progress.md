@@ -21,34 +21,34 @@ PHP='/c/laragon/bin/php/php-8.4.12-nts-Win32-vs17-x64/php.exe'
 "$PHP" artisan migrate
 ```
 
-## Keputusan yang menunggu jawaban user
+## Keputusan (DIKUNCI user 2026-07-09 — semua default disetujui)
 
-Ini memblokir Fase 3 (migration + enum). Jangan tulis migration `proposal` / `respon` sebelum ini dijawab. Latar belakang lengkap: temuan telaah `docs/prd.md`.
-
-| # | Isu | Usulan default |
+| # | Isu | Keputusan terpasang |
 |---|---|---|
-| D1 | `tahapan()` bentrok: tabel §7b beri `Ditolak`→1 & `Ditolak Kaji Etik`→2, kode beri `null` | Ikuti **kode** (`null`); status terminal tak punya tahap |
-| D2 | `unit_sekarang` kolom tersimpan atau accessor turunan? | **Kolom tersimpan**, di-sync observer, di-index (prd §8.1 butuh untuk antrian) |
-| D3 | Kosakata unit beda: `penelitian\|kaji_etik\|reviewer` (§8.3) vs `cru\|kepk\|reviewer` (§8.4) | Satukan jadi enum `Unit` = `penelitian\|kaji_etik\|reviewer` (ikut method `unit()`) |
-| D4 | Tak ada jalan mundur dari `Menunggu Verifikasi Pembayaran`, `Menunggu Verifikasi Akhir`, `Menunggu Kelengkapan Berkas Etik`; tak ada status batal | Tambah transisi tolak/revisi + status `Dibatalkan` |
-| D5 | `respon` tak punya `proposal_id` → survey proposal A membuka izin proposal B | **Tambah `proposal_id`** ke `respon` (bug nyata) |
-| D6 | Kode `RSPISS###` tabrakan antar tahun (nomor increment per tahun, kode tanpa tahun) | Tambah kolom `tahun` + `unique(tahun, nomor)`; format kode memuat tahun |
+| D1 | `tahapan()` bentrok tabel vs kode §7b | Terminal → `null` (`ProposalStatus::tahapan()`) |
+| D2 | `unit_sekarang` | Kolom tersimpan + index, di-sync `ProposalWorkflow::transition()` |
+| D3 | Kosakata unit | Enum `Unit` = `penelitian\|kaji_etik\|reviewer` di semua tabel |
+| D4 | Jalan mundur | `MenungguVerifikasiPembayaran→MenungguPembayaran`, `MenungguVerifikasiAkhir→PelaksanaanPenelitian`, `MenungguKelengkapanBerkasEtik→DitolakKajiEtik`, + status `Dibatalkan` (dari semua non-terminal) |
+| D5 | Survey per proposal | `respon.proposal_id` + partial unique; gate unduh di `DocumentDownloadController` |
+| D6 | Kode proposal | `RSPISS-YYYY-###`, kolom `tahun`+`nomor` `unique(tahun,nomor)` |
 
 Celah kecil (tidak memblokir): `proposal_status_history` kena softDeletes + `updated_by`/`deleted_by` yang melemahkan integritas audit; `actor_id` duplikat `created_by`; `proposal_documents.uploaded_by` duplikat `created_by`; nama `jenis` dokumen meleset dari §7c (`raw_data` vs `raw_data_penelitian`, `proposal` vs `proposal_penelitian`).
 
 ## Fase
 
-- [x] **F0 — Fondasi.** Skeleton Laravel 12, `.env` ke `eprotocol`, `APP_KEY`, git init, file rencana ini.
-- [ ] **F1 — Paket & UI shell.** Livewire 3, Tailwind + daisyUI + Mary UI, spatie/laravel-permission. Layout dasar + halaman kosong yang render.
-- [ ] **F2 — Konvensi §8.0.** `Blueprint::macro('auditColumns')` di `AppServiceProvider`, trait `HasUuidAndAudit`, verifikasi `Str::uuid7()` jalan di PG 14.
-- [ ] **F3 — Domain inti.** *(butuh D1–D6)* Enum `ProposalStatus`, `DocumentType`, `Unit`. Migration: `proposal`, `proposal_documents`, `proposal_status_history`, `proposal_reviews`. Model + observer `unit_sekarang`.
-- [ ] **F4 — RBAC & menu dinamis.** Tabel `menus`, auto-generate permission `{slug}.read|create|update|delete`, seeder 9 role (prd §1), matriks role × menu, sidebar ter-filter permission.
-- [ ] **F5 — Auth + layout.** Registrasi/login peneliti, layout panel Livewire, sidebar dinamis. **Tanpa 2FA.**
-- [ ] **F6 — Tahap 1 (CRU).** Ajukan proposal, review berkas, minta revisi, jadwal presentasi, tolak, loloskan ke KEPK.
-- [ ] **F7 — Tahap 2 (KEPK + Reviewer).** Lengkapi berkas etik, arahkan ke Reviewer, loop komentar/revisi (>1×), ACC, lanjut/tolak etik.
-- [ ] **F8 — Tahap 3.** Upload bukti bayar + verifikasi CRU.
-- [ ] **F9 — Tahap 4.** Draft izin, upload laporan + raw data, izin final, **gate survey kepuasan sebelum unduh**.
-- [ ] **F10 — Pelengkap.** Laravel Reverb (notif realtime), laporan, audit log, object storage (S3/MinIO — belum final).
+- [x] **F0 — Fondasi.** Skeleton Laravel 12.63, `.env` ke `eprotocol`, `APP_KEY`, git init.
+- [x] **F1 — Paket & UI shell.** Livewire 3.8, Mary UI 2.9 (prefix `mary-` di `config/mary.php`), daisyUI 5, spatie/permission 8.3 (morph key uuid).
+- [x] **F2 — Konvensi §8.0.** Macro `auditColumns` (`AppServiceProvider`), trait `app/Concerns/HasUuidAndAudit.php`, users → uuid + kolom prd.
+- [x] **F3 — Domain inti.** Enum `ProposalStatus`/`DocumentType`/`Unit`; migration proposal + documents + status_history + reviews; `app/Services/ProposalWorkflow.php` (pintu tunggal transisi + generateKode). 25 tabel jalan di `eprotocol`.
+- [x] **F4 — RBAC & menu dinamis.** `MenuObserver`→`MenuPermissionSync`; seeder 9 role, 12 menu, 48 permission, 9 user demo (`{role}@eproposal.test` / `password`).
+- [x] **F5 — Auth + layout.** Login/register Livewire (tanpa 2FA), layout Mary, sidebar dinamis ter-filter permission, dashboard per role.
+- [x] **F6 — Tahap 1 (CRU).** `Proposal\Create/Index/Show` + `Antrian\Cru`: revisi, presentasi, tolak, loloskan.
+- [x] **F7 — Tahap 2 (KEPK + Reviewer).** Berkas etik 4 wajib, loop reviewer (ronde di `proposal_reviews`), ACC, KEPK lanjut/tolak.
+- [x] **F8 — Tahap 3.** Bukti bayar + verifikasi/tolak (D4) + info rekening dari `informasi_kontak`.
+- [x] **F9 — Tahap 4.** Draft izin, laporan+raw data, izin final, **survey gate** di `DocumentDownloadController` (uji: `SurveyGateTest`).
+- [ ] **F10 — Pelengkap.** Laravel Reverb (notif realtime), export laporan Excel, object storage S3/MinIO (sekarang: disk lokal `public` via controller ber-otorisasi), reset password email.
+
+**Verifikasi terakhir (2026-07-09):** `artisan test` 19 lulus / 38 assertion (workflow penuh #1→#14, loop reviewer 2×, transisi mundur D4, loncat status 403, gate survey A/B, sinkron menu-permission); `artisan serve` render login + redirect + asset Vite OK. Semua aksi UI lewat `ProposalWorkflow` — jangan set `proposal->status` langsung.
 
 ## Catatan berjalan
 

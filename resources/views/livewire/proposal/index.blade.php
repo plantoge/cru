@@ -1,0 +1,35 @@
+<div>
+    <x-mary-header title="Proposal Saya" separator>
+        <x-slot:middle class="!justify-end">
+            <x-mary-input placeholder="Cari kode / judul..." wire:model.live.debounce="cari" icon="o-magnifying-glass" clearable />
+        </x-slot:middle>
+        <x-slot:actions>
+            @can('proposal.create')
+                <x-mary-button label="Ajukan Baru" icon="o-plus" link="{{ route('proposal.create') }}" class="btn-primary" />
+            @endcan
+        </x-slot:actions>
+    </x-mary-header>
+
+    <x-mary-card shadow>
+        <div class="overflow-x-auto">
+            <table class="table">
+                <thead><tr><th>Kode</th><th>Judul</th><th>Tahap</th><th>Status</th><th>Diajukan</th><th></th></tr></thead>
+                <tbody>
+                @forelse ($proposals as $p)
+                    <tr>
+                        <td class="font-mono">{{ $p->kode }}</td>
+                        <td class="max-w-md truncate">{{ $p->judul_penelitian }}</td>
+                        <td>{{ $p->status->tahapan() ? 'Tahap '.$p->status->tahapan() : '—' }}</td>
+                        <td><span class="badge badge-sm {{ $p->status->warna() }}">{{ $p->status->value }}</span></td>
+                        <td>{{ $p->created_at->format('d/m/Y') }}</td>
+                        <td><x-mary-button icon="o-eye" link="{{ route('proposal.show', $p) }}" class="btn-ghost btn-sm" /></td>
+                    </tr>
+                @empty
+                    <tr><td colspan="6" class="text-center opacity-60">Belum ada proposal.</td></tr>
+                @endforelse
+                </tbody>
+            </table>
+        </div>
+        {{ $proposals->links() }}
+    </x-mary-card>
+</div>

@@ -1,0 +1,38 @@
+<?php
+
+namespace App\Http\Controllers;
+
+use App\Enums\DocumentType;
+use App\Models\ProposalDocument;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
+
+class DocumentDownloadController extends Controller
+{
+    /**
+     * Unduh dokumen proposal dengan otorisasi:
+     * - pemilik proposal atau petugas unit (permission read antrian),
+     * - khusus izin_final: TERKUNCI sampai survey kepuasan terisi (prd Tahap 4).
+     */
+    public function __invoke(Request $request, ProposalDocument $document)
+    {
+        $user = $request->user();
+        $proposal = $document->proposal;
+
+        abort_unless(
+            $proposal->user_id === $user->id
+            || $user->canAny(['antrian-cru.read', 'kaji-etik.read', 'antrian-reviewer.read']),
+            403,
+        );
+
+        if ($document->jenis === DocumentType::IzinFinal
+            && $proposal->user_id === $user->id
+            && ! $proposal->respon()->exists()) {
+            abort(403, 'Surat izin final terkunci — isi survey kepuasan terlebih dahulu.');
+        }
+
+        abort_unless(Storage::disk('public')->exists($document->path), 404);
+
+        return Storage::disk('public')->download($document->path, $document->nama_asli);
+    }
+}
