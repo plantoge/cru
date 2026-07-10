@@ -356,6 +356,12 @@ class Show extends Component
         );
         $this->validate(['catatan' => 'required|string'], [], ['catatan' => 'catatan untuk peneliti']);
 
+        // Surat tanggapan resmi KEPK untuk peneliti (opsional, terlihat peneliti)
+        if ($this->fileUpload) {
+            $this->validate(['fileUpload' => DocumentType::SuratTanggapan->aturanValidasi()]);
+            $this->simpanFile(DocumentType::SuratTanggapan, $this->fileUpload);
+        }
+
         $this->pindah(ProposalStatus::PerluRevisiReviewer, $this->catatan);
     }
 

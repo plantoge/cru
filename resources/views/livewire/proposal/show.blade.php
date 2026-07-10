@@ -181,7 +181,13 @@
                 @if ($penugasanSaya->status === 'menunggu')
                     <x-mary-card title="Telaah Reviewer" subtitle="Tanggapan Anda dikirim ke KEPK (bukan langsung ke peneliti)" shadow>
                         <x-mary-textarea label="Komentar / masukan" wire:model="catatan" rows="3" />
-                        <x-mary-file label="File tanggapan (PDF, opsional)" wire:model="fileUpload" accept="application/pdf" />
+                        {{-- File tanggapan jarang dipakai — disembunyikan di balik toggle --}}
+                        <details class="mt-2">
+                            <summary class="text-sm opacity-60 cursor-pointer select-none">Lampirkan file tanggapan (opsional)</summary>
+                            <div class="pt-2">
+                                <x-mary-file label="File tanggapan (PDF)" wire:model="fileUpload" accept="application/pdf" />
+                            </div>
+                        </details>
                         <x-slot:actions>
                             <x-mary-button label="Minta Revisi" wire:click="reviewerMintaRevisi" class="btn-warning" spinner />
                             <x-mary-button label="ACC Berkas" wire:click="reviewerAcc" class="btn-success" spinner />
@@ -234,6 +240,7 @@
 
                     <x-mary-textarea label="Catatan untuk peneliti / alasan" wire:model="catatan" rows="2"
                         hint="Saat meneruskan revisi, rangkum masukan reviewer di sini — nama reviewer jangan disebut." />
+                    <x-mary-file label="Surat tanggapan resmi untuk peneliti (PDF, opsional)" wire:model="fileUpload" accept="application/pdf" />
 
                     <x-slot:actions>
                         @if ($adaRevisi && $proposal->status === ProposalStatus::MenungguReviewReviewer)
