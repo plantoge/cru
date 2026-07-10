@@ -30,6 +30,12 @@
                 </tbody>
             </table>
         </div>
-        {{ $proposals->links() }}
+        @if ($adaLagi)
+            <div x-intersect="$wire.muatLagi()" class="py-4 text-center" wire:key="sentinel-{{ $proposals->count() }}">
+                <span class="loading loading-dots loading-md opacity-50"></span>
+            </div>
+        @elseif ($proposals->isNotEmpty())
+            <div class="py-3 text-center text-xs opacity-40">Semua data sudah ditampilkan ({{ $proposals->count() }})</div>
+        @endif
     </x-mary-card>
 </div>
