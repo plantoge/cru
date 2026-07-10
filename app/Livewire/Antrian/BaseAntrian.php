@@ -17,10 +17,15 @@ abstract class BaseAntrian extends Component
 
     abstract protected function judul(): string;
 
+    /** Query dasar antrian — subclass boleh override (mis. reviewer per penugasan). */
+    protected function query()
+    {
+        return Proposal::query()->where('unit_sekarang', $this->unit()->value);
+    }
+
     public function render()
     {
-        $proposals = Proposal::query()
-            ->where('unit_sekarang', $this->unit()->value)
+        $proposals = $this->query()
             ->when($this->cari, fn ($q) => $q->where(fn ($w) => $w
                 ->where('kode', 'ilike', "%{$this->cari}%")
                 ->orWhere('judul_penelitian', 'ilike', "%{$this->cari}%")

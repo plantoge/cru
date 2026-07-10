@@ -221,19 +221,39 @@
 <div class="step">
   <div class="card p"><div class="num">4</div>
     <div class="t">Lengkapi Berkas Kaji Etik <span class="badge b-tahap">Tahap 2</span></div>
-    <div class="d">Isi/unggah: <b>form kaji etik</b>, <b>informed consent</b>, <b>perjanjian kerjasama (PKS)</b>, <b>kerahasiaan data</b>. Setelah lengkap, <b>KEPK mengarahkan berkas ke Reviewer</b>.</div>
-    <span class="badge b-status">Menunggu Review Reviewer</span>
+    <div class="d">Isi/unggah: <b>form kaji etik</b>, <b>informed consent</b>, <b>perjanjian kerjasama (PKS)</b>, <b>kerahasiaan data</b>. Setelah lengkap, berkas <b>diarahkan ke KEPK</b>.</div>
+    <span class="badge b-status">Menunggu Penunjukan Reviewer</span>
   </div>
   <div class="card empty"></div>
+</div>
+
+<!-- 4b penunjukan reviewer -->
+<div class="step">
+  <div class="card empty"></div>
+  <div class="card a"><div class="num">4b</div>
+    <div class="t">KEPK Menunjuk Reviewer</div>
+    <div class="d">KEPK memilih <b>minimal 1 reviewer (boleh lebih)</b>. Proposal masuk antrian tiap reviewer yang ditugaskan.</div>
+    <span class="badge b-status">Menunggu Review Reviewer</span><span class="badge b-unit b-kepk">KEPK</span>
+  </div>
 </div>
 
 <!-- 5 reviewer -->
 <div class="step">
   <div class="card empty"></div>
   <div class="card a"><div class="num">5</div>
-    <div class="t">Review Berkas Kaji Etik</div>
-    <div class="d"><b>Reviewer</b> menelaah. <b>Ada kekurangan/salah</b> → beri komentar & masukan (revisi). <b>Sudah benar</b> → ACC.</div>
-    <span class="badge b-status">Perlu Revisi Reviewer</span><span class="badge b-status">Disetujui Reviewer</span><span class="badge b-unit b-rev">REV</span>
+    <div class="t">Review Berkas → Jawaban ke KEPK</div>
+    <div class="d">Tiap <b>Reviewer</b> menelaah seluruh berkas: <b>komentar</b> + opsional <b>file tanggapan</b> + <b>ACC / minta revisi</b>. Tanggapan <b>ke KEPK, bukan ke peneliti</b> (komentar & identitas dirahasiakan dari peneliti).</div>
+    <span class="badge b-unit b-rev">REV</span>
+  </div>
+</div>
+
+<!-- 5a KEPK teruskan -->
+<div class="step">
+  <div class="card empty"></div>
+  <div class="card a"><div class="num">5a</div>
+    <div class="t">KEPK Meneruskan Masukan ke Peneliti</div>
+    <div class="d">KEPK merangkum masukan reviewer &amp; meneruskan ke peneliti tanpa identitas reviewer.</div>
+    <span class="badge b-status">Perlu Revisi Reviewer</span><span class="badge b-unit b-kepk">KEPK</span>
   </div>
 </div>
 
@@ -241,7 +261,7 @@
 <div class="step">
   <div class="card p"><div class="num">5↻</div>
     <div class="t">Perbaiki &amp; Isi Ulang Berkas</div>
-    <div class="d">Peneliti memperbaiki sesuai komentar Reviewer, kirim ulang. <b>Revisi bisa lebih dari 1×</b> (loop ke Reviewer).</div>
+    <div class="d">Peneliti memperbaiki sesuai catatan KEPK, kirim ulang. <b>Revisi bisa lebih dari 1×</b> — tiap kirim ulang = <b>ronde baru</b> semua reviewer.</div>
     <span class="badge b-status">Menunggu Review Reviewer</span><span class="badge b-notif">notif</span>
   </div>
   <div class="card empty"></div>
@@ -251,9 +271,9 @@
 <div class="step">
   <div class="card empty"></div>
   <div class="card a"><div class="num">6</div>
-    <div class="t">Keputusan KEPK → Lanjut Tahap 3</div>
-    <div class="d">Setelah Reviewer ACC, <b>KEPK</b> melanjutkan ke pembayaran, atau menolak secara etik.</div>
-    <span class="badge b-status">Menunggu Pembayaran</span><span class="badge b-status b-reject">Ditolak Kaji Etik</span><span class="badge b-tahap">Tahap 3</span><span class="badge b-unit b-kepk">KEPK</span>
+    <div class="t">Semua Reviewer ACC → Keputusan KEPK</div>
+    <div class="d">Bila <b>SEMUA reviewer ACC</b> (otomatis <i>Disetujui Reviewer</i>), <b>KEPK</b> meloloskan ke pembayaran, atau menolak secara etik.</div>
+    <span class="badge b-status">Disetujui Reviewer</span><span class="badge b-status">Menunggu Pembayaran</span><span class="badge b-status b-reject">Ditolak Kaji Etik</span><span class="badge b-tahap">Tahap 3</span><span class="badge b-unit b-kepk">KEPK</span>
   </div>
 </div>
 
@@ -261,7 +281,7 @@
 <div class="step">
   <div class="card p"><div class="num">7</div>
     <div class="t">Administrasi Pembayaran <span class="badge b-tahap">Tahap 3</span></div>
-    <div class="d">Peneliti melakukan pembayaran &amp; upload bukti. <i>(Rencana: integrasi payment gateway.)</i></div>
+    <div class="d">Peneliti melakukan <b>dua pembayaran terpisah — CRU &amp; KEPK</b> — dan upload <b>bukti masing-masing</b> (2 file). <i>(Rencana: integrasi payment gateway.)</i></div>
     <span class="badge b-status">Menunggu Verifikasi Pembayaran</span><span class="badge b-notif">notif</span>
   </div>
   <div class="card empty"></div>
@@ -322,13 +342,15 @@
   <tr><td>Menunggu Verifikasi Berkas / Revisi</td><td>Minta presentasi <span class="muted">(Admin CRU)</span></td><td><span class="badge b-status">Menunggu Presentasi</span></td><td>1</td></tr>
   <tr><td>Menunggu Verifikasi Berkas / Presentasi</td><td>Tolak <span class="muted">(Admin CRU)</span></td><td><span class="badge b-status b-reject">Ditolak</span></td><td>—</td></tr>
   <tr><td>Menunggu Presentasi</td><td>Loloskan ke KEPK <span class="muted">(Admin CRU)</span></td><td><span class="badge b-status">Menunggu Kelengkapan Berkas Etik</span></td><td>2</td></tr>
-  <tr><td>Menunggu Kelengkapan Berkas Etik</td><td>Lengkapi berkas etik → KEPK arahkan <span class="muted">(Peneliti/KEPK)</span></td><td><span class="badge b-status">Menunggu Review Reviewer</span></td><td>2</td></tr>
-  <tr><td>Menunggu Review Reviewer</td><td>Beri komentar / minta revisi <span class="muted">(Reviewer)</span></td><td><span class="badge b-status">Perlu Revisi Reviewer</span></td><td>2</td></tr>
-  <tr><td>Perlu Revisi Reviewer</td><td>Perbaiki &amp; isi ulang <span class="muted">(Peneliti)</span></td><td><span class="badge b-status">Menunggu Review Reviewer</span></td><td>2</td></tr>
-  <tr><td>Menunggu Review Reviewer</td><td>ACC berkas <span class="muted">(Reviewer)</span></td><td><span class="badge b-status">Disetujui Reviewer</span></td><td>2</td></tr>
+  <tr><td>Menunggu Kelengkapan Berkas Etik</td><td>Lengkapi berkas etik → ke KEPK <span class="muted">(Peneliti)</span></td><td><span class="badge b-status">Menunggu Penunjukan Reviewer</span></td><td>2</td></tr>
+  <tr><td>Menunggu Penunjukan Reviewer</td><td>Tunjuk reviewer ≥1 <span class="muted">(KEPK)</span></td><td><span class="badge b-status">Menunggu Review Reviewer</span></td><td>2</td></tr>
+  <tr><td>Menunggu Review Reviewer</td><td>Tanggapan reviewer (komentar/file/ACC/revisi) → <b>ke KEPK</b>, status tetap <span class="muted">(Reviewer)</span></td><td>—</td><td>2</td></tr>
+  <tr><td>Menunggu Review Reviewer</td><td>Teruskan masukan reviewer ke peneliti <span class="muted">(KEPK)</span></td><td><span class="badge b-status">Perlu Revisi Reviewer</span></td><td>2</td></tr>
+  <tr><td>Perlu Revisi Reviewer</td><td>Perbaiki &amp; isi ulang — ronde baru semua reviewer <span class="muted">(Peneliti)</span></td><td><span class="badge b-status">Menunggu Review Reviewer</span></td><td>2</td></tr>
+  <tr><td>Menunggu Review Reviewer</td><td><b>Semua</b> reviewer ACC <span class="muted">(otomatis)</span></td><td><span class="badge b-status">Disetujui Reviewer</span></td><td>2</td></tr>
   <tr><td>Disetujui Reviewer</td><td>Tolak etik <span class="muted">(KEPK)</span></td><td><span class="badge b-status b-reject">Ditolak Kaji Etik</span></td><td>—</td></tr>
   <tr><td>Disetujui Reviewer</td><td>Lanjut ke Tahap 3 <span class="muted">(KEPK)</span></td><td><span class="badge b-status">Menunggu Pembayaran</span></td><td>3</td></tr>
-  <tr><td>Menunggu Pembayaran</td><td>Upload bukti bayar <span class="muted">(Peneliti)</span></td><td><span class="badge b-status">Menunggu Verifikasi Pembayaran</span></td><td>3</td></tr>
+  <tr><td>Menunggu Pembayaran</td><td>Upload 2 bukti bayar (CRU + KEPK) <span class="muted">(Peneliti)</span></td><td><span class="badge b-status">Menunggu Verifikasi Pembayaran</span></td><td>3</td></tr>
   <tr><td>Menunggu Verifikasi Pembayaran</td><td>Terbitkan draft izin <span class="muted">(Admin CRU)</span></td><td><span class="badge b-status">Pelaksanaan Penelitian</span></td><td>4</td></tr>
   <tr><td>Pelaksanaan Penelitian</td><td>Upload laporan + raw data <span class="muted">(Peneliti)</span></td><td><span class="badge b-status">Menunggu Verifikasi Akhir</span></td><td>4</td></tr>
   <tr><td>Menunggu Verifikasi Akhir</td><td>Terbitkan izin final (unduh terkunci) <span class="muted">(Admin CRU)</span></td><td><span class="badge b-status">Menunggu Survey Kepuasan</span></td><td>4</td></tr>

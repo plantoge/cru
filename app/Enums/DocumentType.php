@@ -14,8 +14,9 @@ enum DocumentType: string
     case InformedConsent = 'informed_consent';
     case Pks = 'pks';
     case KerahasiaanData = 'kerahasiaan_data';
-    // Tahap 3
-    case BuktiBayar = 'bukti_bayar';
+    // Tahap 3 — pembayaran terpisah ke CRU & KEPK
+    case BuktiBayarCru = 'bukti_bayar_cru';
+    case BuktiBayarKepk = 'bukti_bayar_kepk';
     // Tahap 4
     case LaporanPenelitian = 'laporan_penelitian';
     case RawData = 'raw_data';
@@ -24,6 +25,7 @@ enum DocumentType: string
     case IzinFinal = 'izin_final';
     case SuratPenolakan = 'surat_penolakan';
     case SuratTanggapan = 'surat_tanggapan';
+    case TanggapanReviewer = 'tanggapan_reviewer';
 
     public function label(): string
     {
@@ -36,13 +38,15 @@ enum DocumentType: string
             self::InformedConsent => 'Informed Consent',
             self::Pks => 'Perjanjian Kerjasama (PKS)',
             self::KerahasiaanData => 'Kerahasiaan Data',
-            self::BuktiBayar => 'Bukti Pembayaran',
+            self::BuktiBayarCru => 'Bukti Pembayaran (CRU)',
+            self::BuktiBayarKepk => 'Bukti Pembayaran (KEPK)',
             self::LaporanPenelitian => 'Laporan Penelitian',
             self::RawData => 'Raw Data Penelitian',
             self::IzinDraft => 'Surat Izin Penelitian (Draft)',
             self::IzinFinal => 'Surat Izin Penelitian (Final)',
             self::SuratPenolakan => 'Surat Penolakan',
             self::SuratTanggapan => 'Surat Tanggapan Revisi',
+            self::TanggapanReviewer => 'File Tanggapan Reviewer',
         };
     }
 
@@ -68,7 +72,7 @@ enum DocumentType: string
     public function aturanValidasi(): string
     {
         return match ($this) {
-            self::BuktiBayar => 'file|mimes:jpg,jpeg,pdf|max:5120',
+            self::BuktiBayarCru, self::BuktiBayarKepk => 'file|mimes:jpg,jpeg,pdf|max:5120',
             self::RawData => 'file|mimes:xls,xlsx|max:20480',
             default => 'file|mimes:pdf|max:10240',
         };
@@ -78,7 +82,8 @@ enum DocumentType: string
     public function milikAdmin(): bool
     {
         return in_array($this, [
-            self::IzinDraft, self::IzinFinal, self::SuratPenolakan, self::SuratTanggapan,
+            self::IzinDraft, self::IzinFinal, self::SuratPenolakan,
+            self::SuratTanggapan, self::TanggapanReviewer,
         ], true);
     }
 }

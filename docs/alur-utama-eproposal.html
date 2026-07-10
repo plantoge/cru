@@ -148,25 +148,43 @@
 <div class="step">
   <div class="card p"><div class="num">4</div>
     <div class="t">Lengkapi Berkas Kaji Etik <span class="badge b-tahap">Tahap 2</span></div>
-    <div class="d">Isi/unggah: <b>form kaji etik</b>, <b>informed consent</b>, <b>perjanjian kerjasama (PKS)</b>, <b>kerahasiaan data</b>. Setelah lengkap, <b>KEPK mengarahkan berkas ke Reviewer</b>.</div>
-    <span class="badge b-status">Menunggu Review Reviewer</span>
+    <div class="d">Isi/unggah: <b>form kaji etik</b>, <b>informed consent</b>, <b>perjanjian kerjasama (PKS)</b>, <b>kerahasiaan data</b>. Setelah lengkap, berkas <b>diarahkan ke KEPK</b>.</div>
+    <span class="badge b-status">Menunggu Penunjukan Reviewer</span>
   </div>
   <div class="card empty"></div>
 </div>
 
 <div class="step">
   <div class="card empty"></div>
+  <div class="card a"><div class="num">4b</div>
+    <div class="t">KEPK Menunjuk Reviewer</div>
+    <div class="d">KEPK memilih <b>minimal 1 reviewer (boleh lebih)</b> dari user ber-role Reviewer. Proposal masuk antrian tiap reviewer yang ditugaskan.</div>
+    <span class="badge b-status">Menunggu Review Reviewer</span><span class="badge b-unit b-kepk">KEPK</span>
+  </div>
+</div>
+
+<div class="step">
+  <div class="card empty"></div>
   <div class="card a"><div class="num">5</div>
-    <div class="t">Review Berkas Kaji Etik</div>
-    <div class="d"><b>Reviewer</b> menelaah berkas. <b>Ada kekurangan/salah</b> → beri komentar & masukan (revisi). <b>Sudah benar</b> → ACC.</div>
-    <span class="badge b-status">Perlu Revisi Reviewer</span><span class="badge b-status">Disetujui Reviewer</span><span class="badge b-unit b-rev">REV</span>
+    <div class="t">Review Berkas Kaji Etik → Jawaban ke KEPK</div>
+    <div class="d">Tiap <b>Reviewer</b> menelaah seluruh berkas lalu memberi tanggapan: <b>komentar</b>, opsional <b>upload file tanggapan</b>, keputusan <b>ACC / minta revisi</b>. Tanggapan <b>dikirim ke KEPK, bukan ke peneliti</b> — komentar & identitas reviewer dirahasiakan dari peneliti.</div>
+    <span class="badge b-unit b-rev">REV</span>
+  </div>
+</div>
+
+<div class="step">
+  <div class="card empty"></div>
+  <div class="card a"><div class="num">5a</div>
+    <div class="t">KEPK Meneruskan Masukan ke Peneliti</div>
+    <div class="d">Bila ada reviewer yang minta revisi, <b>KEPK merangkum & meneruskan</b> masukan ke peneliti (tanpa menyebut identitas reviewer).</div>
+    <span class="badge b-status">Perlu Revisi Reviewer</span><span class="badge b-unit b-kepk">KEPK</span>
   </div>
 </div>
 
 <div class="step">
   <div class="card p"><div class="num">5↻</div>
     <div class="t">Perbaiki &amp; Isi Ulang Berkas</div>
-    <div class="d">Peneliti memperbaiki sesuai komentar Reviewer, kirim ulang. <b>Revisi bisa lebih dari 1×</b> (loop ke Reviewer).</div>
+    <div class="d">Peneliti memperbaiki sesuai catatan KEPK, kirim ulang. <b>Revisi bisa lebih dari 1×</b> — tiap kirim ulang membuka <b>ronde baru</b> untuk semua reviewer.</div>
     <span class="badge b-status">Menunggu Review Reviewer</span><span class="badge b-notif">notif</span>
   </div>
   <div class="card empty"></div>
@@ -175,9 +193,9 @@
 <div class="step">
   <div class="card empty"></div>
   <div class="card a"><div class="num">6</div>
-    <div class="t">Keputusan KEPK → Lanjut Tahap 3</div>
-    <div class="d">Setelah Reviewer ACC, <b>KEPK</b> melanjutkan ke administrasi pembayaran, atau menolak secara etik.</div>
-    <span class="badge b-status">Menunggu Pembayaran</span><span class="badge b-status b-reject">Ditolak Kaji Etik</span><span class="badge b-tahap">Tahap 3</span><span class="badge b-unit b-kepk">KEPK</span>
+    <div class="t">Semua Reviewer ACC → Keputusan KEPK</div>
+    <div class="d">Bila <b>SEMUA reviewer sudah ACC</b> (status otomatis <i>Disetujui Reviewer</i>), <b>KEPK</b> meloloskan ke administrasi pembayaran, atau menolak secara etik.</div>
+    <span class="badge b-status">Disetujui Reviewer</span><span class="badge b-status">Menunggu Pembayaran</span><span class="badge b-status b-reject">Ditolak Kaji Etik</span><span class="badge b-tahap">Tahap 3</span><span class="badge b-unit b-kepk">KEPK</span>
   </div>
 </div>
 
@@ -185,7 +203,7 @@
 <div class="step">
   <div class="card p"><div class="num">7</div>
     <div class="t">Administrasi Pembayaran <span class="badge b-tahap">Tahap 3</span></div>
-    <div class="d">Peneliti melakukan pembayaran &amp; upload bukti. <i>(Rencana: integrasi payment gateway.)</i></div>
+    <div class="d">Peneliti melakukan <b>dua pembayaran terpisah — CRU &amp; KEPK</b> — lalu upload <b>bukti bayar masing-masing</b> (2 file). <i>(Rencana: integrasi payment gateway.)</i></div>
     <span class="badge b-status">Menunggu Verifikasi Pembayaran</span><span class="badge b-notif">notif</span>
   </div>
   <div class="card empty"></div>
@@ -229,7 +247,11 @@
 </div>
 
 <div class="note">
-  <b>Pembagian pihak:</b> <b>CRU/Penelitian</b> = Tahap 1 (review + presentasi), Tahap 3 (pembayaran), Tahap 4 (izin & pelaporan). <b>KEPK/Kaji Etik</b> = orkestrasi Tahap 2 (arahkan ke Reviewer, keputusan lanjut/tolak). <b>Reviewer</b> = menelaah &amp; meng-ACC berkas kaji etik. Alur sequential; <code>proposal_status</code> sebagai sumber kebenaran tunggal.
+  <b>Pembagian pihak:</b> <b>CRU/Penelitian</b> = Tahap 1 (review + presentasi), Tahap 3 (pembayaran), Tahap 4 (izin & pelaporan). <b>KEPK/Kaji Etik</b> = perantara penuh Tahap 2: menunjuk reviewer (≥1), menerima tanggapan reviewer, meneruskan revisi ke peneliti, keputusan lanjut/tolak. <b>Reviewer</b> = menelaah berkas &amp; menjawab ke KEPK (komentar + file tanggapan + ACC/revisi). Alur sequential; <code>proposal_status</code> sebagai sumber kebenaran tunggal.
+</div>
+
+<div class="note">
+  <b>Kerahasiaan reviewer:</b> komentar reviewer tidak terlihat oleh peneliti; pada riwayat status milik peneliti, nama reviewer disamarkan menjadi "Reviewer". KEPK baru dapat meloloskan ke Tahap 3 setelah <b>semua</b> reviewer ACC.
 </div>
 
 <div class="note">

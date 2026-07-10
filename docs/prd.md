@@ -143,14 +143,16 @@ Alur **sequential**; unit pemegang berpindah antar tahap. Aktor terlibat: **Pene
 3. CRU **meminta peneliti mempresentasikan proposal**.
 4. Dari hasil review/presentasi, CRU dapat: **minta revisi berkas**, **menolak**, atau **melanjutkan ke Tahap 2**.
 
-### Tahap 2 — Kaji Etik *(Bagian KEPK + Reviewer)*
-1. Peneliti **melengkapi berkas kaji etik**: form kaji etik, **informed consent**, perjanjian kerjasama (PKS), kerahasiaan data.
-2. Setelah lengkap, **KEPK mengarahkan berkas ke Reviewer** untuk ditelaah.
-3. **Reviewer me-review.** Bila ada kekurangan/kesalahan, Reviewer memberi **komentar & masukan** → peneliti **merevisi & mengisi ulang** berkas. **Revisi dapat lebih dari satu kali** (loop Reviewer ↔ Peneliti).
-4. Bila sudah benar, **Reviewer meng-ACC**, lalu **KEPK melanjutkan ke Tahap 3**.
+### Tahap 2 — Kaji Etik *(Bagian KEPK + Reviewer — KEPK sebagai perantara)*
+1. Peneliti **melengkapi berkas kaji etik**: form kaji etik, **informed consent**, perjanjian kerjasama (PKS), kerahasiaan data → berkas **diarahkan ke KEPK**.
+2. **KEPK menunjuk reviewer** — memilih **minimal 1 (boleh lebih)** user ber-role Reviewer. Proposal masuk **antrian tiap reviewer yang ditugaskan**.
+3. **Reviewer menelaah seluruh berkas** lalu memberi tanggapan (kolom komentar + opsional upload file tanggapan + tombol ACC / minta revisi). **Tanggapan reviewer dikirim ke KEPK, bukan ke peneliti.** KEPK yang **meneruskan intinya ke peneliti** (identitas & komentar reviewer dirahasiakan dari peneliti). Peneliti merevisi & mengisi ulang; **loop revisi bisa >1×**, tiap kirim ulang membuka **ronde baru** untuk semua reviewer.
+4. **Bila SEMUA reviewer sudah ACC**, barulah **KEPK meloloskan ke Tahap 3** (atau menolak secara etik).
+
+> **Kerahasiaan reviewer:** komentar reviewer hanya terlihat oleh petugas (KEPK/CRU/Reviewer) — tidak oleh peneliti. Pada riwayat status yang dilihat peneliti, nama reviewer disamarkan menjadi "Reviewer".
 
 ### Tahap 3 — Administrasi Pembayaran *(Bagian CRU)*
-1. **Administrasi pembayaran** proposal oleh peneliti, diverifikasi CRU.
+1. Peneliti melakukan **dua pembayaran terpisah** — ke **CRU** dan ke **KEPK** — lalu mengunggah **bukti bayar masing-masing** (2 file), diverifikasi CRU.
 2. *Rencana ke depan: integrasi **payment gateway**.*
 
 ### Tahap 4 — Perizinan, Pelaporan & Survey *(Bagian CRU)*
@@ -171,12 +173,14 @@ Alur **sequential**; unit pemegang berpindah antar tahap. Aktor terlibat: **Pene
 | 2b | CRU | Minta presentasi | `Menunggu Presentasi` · T1 |
 | 2c | CRU | Tolak | `Ditolak` |
 | 3 | CRU | (usai presentasi) Loloskan ke KEPK | `Menunggu Kelengkapan Berkas Etik` · T2 |
-| 4 | Peneliti | Lengkapi berkas etik (form kaji etik, informed consent, PKS, kerahasiaan) → KEPK arahkan ke Reviewer | `Menunggu Review Reviewer` |
-| 5 | Reviewer | Beri komentar / minta revisi | `Perlu Revisi Reviewer` |
-| 5↻ | Peneliti | Perbaiki & isi ulang (loop bisa >1×) | `Menunggu Review Reviewer` |
-| 6 | Reviewer | ACC berkas | `Disetujui Reviewer` |
+| 4 | Peneliti | Lengkapi berkas etik (form kaji etik, informed consent, PKS, kerahasiaan) → diarahkan ke KEPK | `Menunggu Penunjukan Reviewer` |
+| 4b | KEPK | Tunjuk reviewer (≥1, boleh lebih) | `Menunggu Review Reviewer` |
+| 5 | Reviewer | Tanggapan **ke KEPK**: komentar + file tanggapan (opsional) + ACC / minta revisi. Status tetap sampai KEPK bertindak / semua ACC | — |
+| 5a | KEPK | Teruskan masukan reviewer ke peneliti (identitas dirahasiakan) | `Perlu Revisi Reviewer` |
+| 5↻ | Peneliti | Perbaiki & isi ulang (loop bisa >1×; semua reviewer masuk ronde baru) | `Menunggu Review Reviewer` |
+| 6 | Reviewer | **Semua** reviewer ACC → otomatis | `Disetujui Reviewer` |
 | 7 | KEPK | Lanjut ke Tahap 3 / tolak etik | `Menunggu Pembayaran` · T3 / `Ditolak Kaji Etik` |
-| 8 | Peneliti | Upload bukti pembayaran | `Menunggu Verifikasi Pembayaran` · T3 |
+| 8 | Peneliti | Upload **2 bukti pembayaran** (CRU + KEPK) | `Menunggu Verifikasi Pembayaran` · T3 |
 | 9 | CRU | Terbitkan draft izin | `Pelaksanaan Penelitian` · T4 |
 | 10 | Peneliti | Upload laporan + raw data | `Menunggu Verifikasi Akhir` · T4 |
 | 11 | CRU | Terbitkan izin final (unduh terkunci) | `Menunggu Survey Kepuasan` · T4 |
@@ -284,17 +288,19 @@ Entitas pendukung: `historyFile` (riwayat versi file proposal), `infokontak_mode
 | 3 | `Menunggu Verifikasi Revisi` | 1 | CRU | Admin CRU | peneliti revisi |
 | 4 | `Menunggu Presentasi` | 1 | CRU | Peneliti | CRU minta presentasi; usai presentasi → loloskan/revisi/tolak |
 | 5 | `Menunggu Kelengkapan Berkas Etik` | 2 | KEPK | Peneliti | CRU loloskan ke KEPK |
-| 6 | `Menunggu Review Reviewer` | 2 | Reviewer | Reviewer | peneliti lengkapi etik; KEPK arahkan ke Reviewer |
-| 7 | `Perlu Revisi Reviewer` | 2 | Reviewer | Peneliti | Reviewer beri komentar *(loop → #6, bisa >1×)* |
-| 8 | `Disetujui Reviewer` | 2 | KEPK | KEPK | Reviewer ACC → KEPK lanjut/tolak |
+| 5b | `Menunggu Penunjukan Reviewer` | 2 | KEPK | KEPK | peneliti lengkapi berkas etik → KEPK pilih reviewer (≥1) |
+| 6 | `Menunggu Review Reviewer` | 2 | Reviewer | Reviewer (semua yg ditugaskan) | KEPK tugaskan reviewer; tanggapan reviewer masuk ke KEPK |
+| 7 | `Perlu Revisi Reviewer` | 2 | KEPK | Peneliti | KEPK teruskan masukan reviewer *(loop → #6, ronde baru semua reviewer, bisa >1×)* |
+| 8 | `Disetujui Reviewer` | 2 | KEPK | KEPK | **semua** reviewer ACC (otomatis) → KEPK lanjut/tolak |
 | 9 | `Menunggu Pembayaran` | 3 | CRU | Peneliti | KEPK lanjut ke Tahap 3 |
-| 10 | `Menunggu Verifikasi Pembayaran` | 3 | CRU | Admin CRU | peneliti upload bukti bayar |
+| 10 | `Menunggu Verifikasi Pembayaran` | 3 | CRU | Admin CRU | peneliti upload **2 bukti bayar (CRU + KEPK)** |
 | 11 | `Pelaksanaan Penelitian` | 4 | CRU | Peneliti | CRU terbit draft izin |
 | 12 | `Menunggu Verifikasi Akhir` | 4 | CRU | Admin CRU | peneliti upload laporan + raw data |
 | 13 | `Menunggu Survey Kepuasan` | 4 | CRU | Peneliti | CRU terbit izin final (unduh terkunci sampai survey diisi) |
 | 14 | `Selesai` | — | — | — | peneliti isi survey → unduh izin final terbuka *(terminal)* |
 | T1 | `Ditolak` | 1 | CRU | — | CRU tolak *(terminal)* |
 | T2 | `Ditolak Kaji Etik` | 2 | KEPK | — | KEPK tolak *(terminal)* |
+| T3 | `Dibatalkan` | — | — | — | CRU/superadmin batalkan dari status non-terminal mana pun *(terminal)* |
 
 **Implementasi enum (PHP 8.1+ backed enum) — `App\Enums\ProposalStatus`:**
 
@@ -307,6 +313,7 @@ enum ProposalStatus: string
     case MenungguPresentasi            = 'Menunggu Presentasi';
     case Ditolak                       = 'Ditolak';
     case MenungguKelengkapanBerkasEtik = 'Menunggu Kelengkapan Berkas Etik';
+    case MenungguPenunjukanReviewer    = 'Menunggu Penunjukan Reviewer';
     case MenungguReviewReviewer        = 'Menunggu Review Reviewer';
     case PerluRevisiReviewer           = 'Perlu Revisi Reviewer';
     case DisetujuiReviewer             = 'Disetujui Reviewer';
@@ -317,6 +324,7 @@ enum ProposalStatus: string
     case MenungguVerifikasiAkhir       = 'Menunggu Verifikasi Akhir';
     case MenungguSurveyKepuasan        = 'Menunggu Survey Kepuasan';
     case Selesai                       = 'Selesai';
+    case Dibatalkan                    = 'Dibatalkan';
 
     /** Tahapan diturunkan dari status (null = terminal). */
     public function tahapan(): ?int
@@ -324,12 +332,13 @@ enum ProposalStatus: string
         return match ($this) {
             self::MenungguVerifikasiBerkas, self::PerluRevisiProposal,
             self::MenungguVerifikasiRevisi, self::MenungguPresentasi => 1,
-            self::MenungguKelengkapanBerkasEtik, self::MenungguReviewReviewer,
-            self::PerluRevisiReviewer, self::DisetujuiReviewer => 2,
+            self::MenungguKelengkapanBerkasEtik, self::MenungguPenunjukanReviewer,
+            self::MenungguReviewReviewer, self::PerluRevisiReviewer,
+            self::DisetujuiReviewer => 2,
             self::MenungguPembayaran, self::MenungguVerifikasiPembayaran => 3,
             self::PelaksanaanPenelitian, self::MenungguVerifikasiAkhir,
             self::MenungguSurveyKepuasan => 4,
-            self::Selesai, self::Ditolak, self::DitolakKajiEtik => null,
+            self::Selesai, self::Ditolak, self::DitolakKajiEtik, self::Dibatalkan => null,
         };
     }
 
@@ -337,10 +346,11 @@ enum ProposalStatus: string
     public function unit(): ?string
     {
         return match ($this) {
-            self::MenungguReviewReviewer, self::PerluRevisiReviewer => 'reviewer',
-            self::MenungguKelengkapanBerkasEtik, self::DisetujuiReviewer,
+            self::MenungguReviewReviewer => 'reviewer',
+            self::MenungguKelengkapanBerkasEtik, self::MenungguPenunjukanReviewer,
+            self::PerluRevisiReviewer, self::DisetujuiReviewer,
             self::DitolakKajiEtik => 'kaji_etik',
-            self::Selesai => null,
+            self::Selesai, self::Dibatalkan => null,
             default => 'penelitian',
         };
     }
@@ -354,20 +364,21 @@ enum ProposalStatus: string
             self::PerluRevisiProposal           => [self::MenungguVerifikasiRevisi],
             self::MenungguVerifikasiRevisi      => [self::PerluRevisiProposal, self::MenungguPresentasi, self::Ditolak],
             self::MenungguPresentasi            => [self::MenungguKelengkapanBerkasEtik, self::PerluRevisiProposal, self::Ditolak],
-            // Tahap 2 (KEPK + Reviewer)
-            self::MenungguKelengkapanBerkasEtik => [self::MenungguReviewReviewer],
-            self::MenungguReviewReviewer        => [self::PerluRevisiReviewer, self::DisetujuiReviewer],
+            // Tahap 2 (KEPK perantara + Reviewer)
+            self::MenungguKelengkapanBerkasEtik => [self::MenungguPenunjukanReviewer, self::DitolakKajiEtik],
+            self::MenungguPenunjukanReviewer    => [self::MenungguReviewReviewer, self::DitolakKajiEtik],
+            self::MenungguReviewReviewer        => [self::PerluRevisiReviewer, self::DisetujuiReviewer, self::DitolakKajiEtik],
             self::PerluRevisiReviewer           => [self::MenungguReviewReviewer],
             self::DisetujuiReviewer             => [self::MenungguPembayaran, self::DitolakKajiEtik],
-            // Tahap 3 (CRU)
+            // Tahap 3 (CRU) — bisa mundur bila bukti bayar ditolak
             self::MenungguPembayaran            => [self::MenungguVerifikasiPembayaran],
-            self::MenungguVerifikasiPembayaran  => [self::PelaksanaanPenelitian],
-            // Tahap 4 (CRU)
+            self::MenungguVerifikasiPembayaran  => [self::PelaksanaanPenelitian, self::MenungguPembayaran],
+            // Tahap 4 (CRU) — bisa mundur bila laporan ditolak
             self::PelaksanaanPenelitian         => [self::MenungguVerifikasiAkhir],
-            self::MenungguVerifikasiAkhir       => [self::MenungguSurveyKepuasan],
+            self::MenungguVerifikasiAkhir       => [self::MenungguSurveyKepuasan, self::PelaksanaanPenelitian],
             self::MenungguSurveyKepuasan        => [self::Selesai],
-            // terminal
-            self::Selesai, self::Ditolak, self::DitolakKajiEtik => [],
+            // terminal (Dibatalkan diizinkan dari semua status non-terminal via canGoTo())
+            self::Selesai, self::Ditolak, self::DitolakKajiEtik, self::Dibatalkan => [],
         };
     }
 
@@ -378,7 +389,7 @@ enum ProposalStatus: string
 
     public function isTerminal(): bool
     {
-        return in_array($this, [self::Selesai, self::Ditolak, self::DitolakKajiEtik], true);
+        return $this->allowedNext() === [];
     }
 }
 ```
@@ -408,13 +419,15 @@ Field/berkas yang diisi tiap aktor pada tiap transisi (nama kolom mengacu tabel 
 | Minta presentasi → `Menunggu Presentasi` | CRU | `tanggal_presentasi`, `kategori_presentasi`, `media_presentasi` |
 | Tolak → `Ditolak` | CRU | upload `surat_penolakan` (pdf) |
 | Loloskan → `Menunggu Kelengkapan Berkas Etik` | CRU | (aksi; catatan opsional) |
-| Lengkapi berkas etik → `Menunggu Review Reviewer` | Peneliti | upload **`form_kaji_etik`**, **`informed_consent`**, **`pks`** (perjanjian kerjasama), **`kerahasiaan_data`** (semua wajib) |
-| Minta revisi etik → `Perlu Revisi Reviewer` | Reviewer | `komentar` / masukan (per berkas atau umum) |
-| Perbaiki berkas → `Menunggu Review Reviewer` | Peneliti | re-upload berkas etik terkait |
-| ACC berkas → `Disetujui Reviewer` | Reviewer | keputusan approve (+ catatan opsional) |
+| Lengkapi berkas etik → `Menunggu Penunjukan Reviewer` | Peneliti | upload **`form_kaji_etik`**, **`informed_consent`**, **`pks`** (perjanjian kerjasama), **`kerahasiaan_data`** (semua wajib) → diarahkan ke KEPK |
+| Tunjuk reviewer → `Menunggu Review Reviewer` | KEPK | pilih ≥1 user role reviewer (tabel `proposal_reviewers`) |
+| Tanggapan reviewer (ke KEPK, status tetap) | Reviewer | `komentar`, opsional upload `tanggapan_reviewer` (pdf), keputusan ACC / minta revisi — **tidak terlihat peneliti** |
+| Teruskan revisi → `Perlu Revisi Reviewer` | KEPK | rangkuman masukan untuk peneliti (tanpa identitas reviewer) |
+| Perbaiki berkas → `Menunggu Review Reviewer` | Peneliti | re-upload berkas etik terkait; semua penugasan reviewer reset ke ronde baru |
+| Semua reviewer ACC → `Disetujui Reviewer` | (otomatis) | tercapai saat reviewer terakhir ACC |
 | Tolak etik → `Ditolak Kaji Etik` | KEPK | alasan penolakan / surat |
-| Lanjut ke Tahap 3 → `Menunggu Pembayaran` | KEPK | (aksi) |
-| Upload bukti bayar → `Menunggu Verifikasi Pembayaran` | Peneliti | upload `bukti_bayar` (jpg/pdf) |
+| Lanjut ke Tahap 3 → `Menunggu Pembayaran` | KEPK | (aksi; hanya aktif bila semua reviewer ACC) |
+| Upload bukti bayar → `Menunggu Verifikasi Pembayaran` | Peneliti | upload **`bukti_bayar_cru`** dan **`bukti_bayar_kepk`** (jpg/pdf, keduanya wajib) |
 | Terbitkan draft izin → `Pelaksanaan Penelitian` | CRU | upload `izin_penelitian_draft` (pdf) |
 | Upload hasil → `Menunggu Verifikasi Akhir` | Peneliti | upload `laporan_penelitian` (pdf), `raw_data_penelitian` (xls/xlsx) |
 | Terbitkan izin final → `Menunggu Survey Kepuasan` | CRU | upload `izin_penelitian` (pdf final) |
@@ -571,7 +584,7 @@ Schema::create('proposal_documents', function (Blueprint $t) {
     $t->index(['proposal_id', 'jenis']);
 });
 ```
-**`jenis` (DocumentType enum)** — sesuai §7c: `surat_pengantar`, `proposal`, `kaji_etik`, `sertifikat_gcp` *(T1)*; `form_kaji_etik`, `informed_consent`, `pks`, `kerahasiaan_data` *(T2)*; `bukti_bayar` *(T3)*; `laporan_penelitian`, `raw_data` *(T4)*; `izin_draft`, `izin_final`, `surat_penolakan`, `surat_tanggapan` *(output admin)*. Tambah jenis dokumen = tambah nilai enum, **bukan** kolom baru. `versi` mendukung riwayat revisi file.
+**`jenis` (DocumentType enum)** — sesuai §7c: `surat_pengantar`, `proposal`, `kaji_etik`, `sertifikat_gcp` *(T1)*; `form_kaji_etik`, `informed_consent`, `pks`, `kerahasiaan_data` *(T2)*; `bukti_bayar_cru`, `bukti_bayar_kepk` *(T3 — dua pembayaran terpisah)*; `laporan_penelitian`, `raw_data` *(T4)*; `izin_draft`, `izin_final`, `surat_penolakan`, `surat_tanggapan`, `tanggapan_reviewer` *(output admin; `tanggapan_reviewer` tidak dapat diakses peneliti)*. Tambah jenis dokumen = tambah nilai enum, **bukan** kolom baru. `versi` mendukung riwayat revisi file.
 
 ### 8.3 `proposal_status_history` (audit tektokan → memenuhi Audit Log)
 ```php
@@ -606,7 +619,23 @@ Schema::create('proposal_reviews', function (Blueprint $t) {
 });
 ```
 
-### 8.5 Pembersihan tabel lama (rebuild)
+### 8.5 `proposal_reviewers` (penugasan reviewer oleh KEPK — bisa >1 per proposal)
+```php
+Schema::create('proposal_reviewers', function (Blueprint $t) {
+    $t->uuid('id')->primary();
+    $t->uuid('proposal_id');
+    $t->uuid('reviewer_id');                 // user ber-role reviewer
+    $t->string('status')->default('menunggu'); // menunggu|acc|revisi
+    $t->timestamps();
+    $t->softDeletes();
+    $t->auditColumns();                      // §8.0
+    $t->index(['reviewer_id', 'status']);
+});
+// unik per (proposal, reviewer) selama belum soft-deleted
+```
+Aturan: KEPK menunjuk ≥1 reviewer saat `Menunggu Penunjukan Reviewer`. Antrian reviewer = proposal berstatus `Menunggu Review Reviewer` yang penugasannya `menunggu`. Reviewer merespons → status penugasan jadi `acc`/`revisi` (komentar tercatat di `proposal_reviews` per ronde). **Semua penugasan `acc` → status proposal otomatis `Disetujui Reviewer`.** Saat peneliti kirim revisi, semua penugasan direset ke `menunggu` (ronde baru).
+
+### 8.6 Pembersihan tabel lama (rebuild)
 - `users`: tinjau `status_user` (tumpang tindih dengan role spatie).
 - `survey.respon`: `responden_id` → `uuid` (dari varchar).
 - Lepas prefix `proposal_` pada kolom entitas `proposal`.

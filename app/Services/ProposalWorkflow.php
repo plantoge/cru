@@ -4,13 +4,15 @@ namespace App\Services;
 
 use App\Enums\DocumentType;
 use App\Enums\ProposalStatus;
+use App\Enums\Unit;
 use App\Models\Proposal;
 use App\Models\ProposalDocument;
+use App\Models\ProposalReview;
+use App\Models\ProposalReviewerAssignment;
 use App\Models\ProposalStatusHistory;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Storage;
 
 /**
  * Satu-satunya pintu perubahan status proposal (prd §7b).
@@ -89,6 +91,83 @@ class ProposalWorkflow
             'versi' => $versi,
             'uploaded_by' => Auth::id(),
         ]);
+    }
+
+    /**
+     * KEPK menunjuk >=1 reviewer → proposal masuk antrian reviewer.
+     *
+     * @param  string[]  $reviewerIds
+     */
+    public function tugaskanReviewer(Proposal $proposal, array $reviewerIds, ?string $catatan = null): void
+    {
+        abort_unless($proposal->status === ProposalStatus::MenungguPenunjukanReviewer, 403, 'Belum saatnya penunjukan reviewer');
+        abort_if($reviewerIds === [], 422, 'Pilih minimal satu reviewer');
+
+        DB::transaction(function () use ($proposal, $reviewerIds, $catatan) {
+            foreach ($reviewerIds as $id) {
+                $a = ProposalReviewerAssignment::withTrashed()
+                    ->firstOrNew(['proposal_id' => $proposal->id, 'reviewer_id' => $id]);
+                $a->status = ProposalReviewerAssignment::MENUNGGU;
+                $a->deleted_at = null;
+                $a->save();
+            }
+
+            $this->transition($proposal, ProposalStatus::MenungguReviewReviewer,
+                $catatan ?: 'Reviewer ditugaskan oleh KEPK');
+        });
+    }
+
+    /**
+     * Reviewer merespons (jawaban ke KEPK, bukan ke peneliti):
+     * catat komentar+keputusan per ronde, update status penugasan.
+     * Bila SEMUA reviewer sudah ACC → otomatis "Disetujui Reviewer" (bola KEPK).
+     */
+    public function reviewerMerespons(Proposal $proposal, string $keputusan, ?string $komentar = null, ?UploadedFile $fileTanggapan = null): void
+    {
+        abort_unless($proposal->status === ProposalStatus::MenungguReviewReviewer, 403, 'Proposal tidak sedang direview');
+        abort_unless(in_array($keputusan, ['approve', 'revise'], true), 422);
+
+        $assignment = $proposal->reviewerAssignments()
+            ->where('reviewer_id', Auth::id())
+            ->first();
+
+        abort_unless($assignment, 403, 'Anda tidak ditugaskan pada proposal ini');
+
+        DB::transaction(function () use ($proposal, $assignment, $keputusan, $komentar, $fileTanggapan) {
+            $ronde = (int) $proposal->reviews()
+                ->where('reviewer_id', Auth::id())
+                ->max('ronde') + 1;
+
+            ProposalReview::create([
+                'proposal_id' => $proposal->id,
+                'tahap' => 2,
+                'unit' => Unit::Reviewer->value,
+                'reviewer_id' => Auth::id(),
+                'keputusan' => $keputusan,
+                'komentar' => $komentar,
+                'ronde' => $ronde,
+            ]);
+
+            if ($fileTanggapan) {
+                $this->simpanDokumen($proposal, DocumentType::TanggapanReviewer, $fileTanggapan);
+            }
+
+            $assignment->update([
+                'status' => $keputusan === 'approve'
+                    ? ProposalReviewerAssignment::ACC
+                    : ProposalReviewerAssignment::REVISI,
+            ]);
+
+            if ($keputusan === 'approve' && $proposal->semuaReviewerAcc()) {
+                $this->transition($proposal, ProposalStatus::DisetujuiReviewer, 'Semua reviewer ACC');
+            }
+        });
+    }
+
+    /** Peneliti kirim revisi etik → semua penugasan kembali "menunggu" (ronde baru). */
+    public function resetPenugasanReviewer(Proposal $proposal): void
+    {
+        $proposal->reviewerAssignments()->update(['status' => ProposalReviewerAssignment::MENUNGGU]);
     }
 
     /**

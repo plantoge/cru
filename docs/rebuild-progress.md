@@ -48,7 +48,13 @@ Celah kecil (tidak memblokir): `proposal_status_history` kena softDeletes + `upd
 - [x] **F9 — Tahap 4.** Draft izin, laporan+raw data, izin final, **survey gate** di `DocumentDownloadController` (uji: `SurveyGateTest`).
 - [ ] **F10 — Pelengkap.** Laravel Reverb (notif realtime), export laporan Excel, object storage S3/MinIO (sekarang: disk lokal `public` via controller ber-otorisasi), reset password email.
 
-**Verifikasi terakhir (2026-07-09):** `artisan test` 19 lulus / 38 assertion (workflow penuh #1→#14, loop reviewer 2×, transisi mundur D4, loncat status 403, gate survey A/B, sinkron menu-permission); `artisan serve` render login + redirect + asset Vite OK. Semua aksi UI lewat `ProposalWorkflow` — jangan set `proposal->status` langsung.
+**Verifikasi terakhir (2026-07-10):** `artisan test` 25 lulus / 51 assertion; `view:cache` bersih. Semua aksi UI lewat `ProposalWorkflow` — jangan set `proposal->status` langsung.
+
+## Revisi alur (permintaan user 2026-07-10) — TERPASANG
+
+1. **Tahap 2, KEPK perantara penuh:** peneliti submit berkas etik → status baru `Menunggu Penunjukan Reviewer` (bola KEPK) → KEPK tunjuk **≥1 reviewer** (tabel `proposal_reviewers`, model `ProposalReviewerAssignment`) → tanggapan reviewer (komentar + file `tanggapan_reviewer` + ACC/revisi) **masuk ke KEPK, bukan peneliti**; status proposal tetap sampai KEPK meneruskan revisi (`Perlu Revisi Reviewer`, unit kini `kaji_etik`) atau **semua reviewer ACC → otomatis `Disetujui Reviewer`** (guard `Proposal::semuaReviewerAcc()` di `kepkLanjut`). Revisi peneliti → `resetPenugasanReviewer()` (ronde baru semua reviewer). **Kerahasiaan:** komentar reviewer & file tanggapan tak terlihat/terunduh peneliti; nama reviewer di riwayat disamarkan jadi "Reviewer"; reviewer hanya bisa buka proposal yang ditugaskan padanya.
+2. **Tahap 3, dua pembayaran:** `bukti_bayar` dipecah `bukti_bayar_cru` + `bukti_bayar_kepk` (keduanya wajib). Verifikasi tetap satu pintu CRU. **Payment gateway menyusul setelah alur dikonfirmasi benar.**
+3. Docs disinkronkan: prd.md (§4, §7b enum+tabel, §7c, §8.5 baru `proposal_reviewers`) + 3 HTML + 3 PDF di-regenerate (perlu `--headless=new` di Edge).
 
 ## Catatan berjalan
 

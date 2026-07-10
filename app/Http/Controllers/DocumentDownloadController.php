@@ -25,6 +25,12 @@ class DocumentDownloadController extends Controller
             403,
         );
 
+        // Kerahasiaan: file tanggapan reviewer hanya untuk petugas, bukan peneliti
+        if ($document->jenis === DocumentType::TanggapanReviewer
+            && ! $user->canAny(['antrian-cru.read', 'kaji-etik.read', 'antrian-reviewer.read'])) {
+            abort(403);
+        }
+
         if ($document->jenis === DocumentType::IzinFinal
             && $proposal->user_id === $user->id
             && ! $proposal->respon()->exists()) {

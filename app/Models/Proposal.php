@@ -54,6 +54,18 @@ class Proposal extends Model
         return $this->hasMany(ProposalReview::class, 'proposal_id')->orderBy('ronde');
     }
 
+    public function reviewerAssignments()
+    {
+        return $this->hasMany(ProposalReviewerAssignment::class, 'proposal_id');
+    }
+
+    /** Semua reviewer yang ditugaskan sudah ACC (syarat KEPK lanjut). */
+    public function semuaReviewerAcc(): bool
+    {
+        return $this->reviewerAssignments()->exists()
+            && $this->reviewerAssignments()->where('status', '!=', ProposalReviewerAssignment::ACC)->doesntExist();
+    }
+
     public function respon()
     {
         return $this->hasOne(Respon::class, 'proposal_id');

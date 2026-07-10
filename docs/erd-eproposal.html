@@ -92,7 +92,7 @@
       <tr><td class="k">versi</td><td class="ty">smallint</td></tr>
       <tr><td class="k"><span class="fk">🔗 uploaded_by</span></td><td class="ty">uuid</td></tr>
       <tr><td class="k muted">timestamps · softDeletes</td><td class="ty"></td></tr>
-      <tr><td colspan="2" class="muted" style="font-size:8px">jenis: surat_pengantar, proposal, kaji_etik, sertifikat_gcp, form_kaji_etik, informed_consent, pks, kerahasiaan_data, bukti_bayar, laporan_penelitian, raw_data, izin_draft, izin_final, surat_penolakan, surat_tanggapan</td></tr>
+      <tr><td colspan="2" class="muted" style="font-size:8px">jenis: surat_pengantar, proposal, kaji_etik, sertifikat_gcp, form_kaji_etik, informed_consent, pks, kerahasiaan_data, bukti_bayar_cru, bukti_bayar_kepk, laporan_penelitian, raw_data, izin_draft, izin_final, surat_penolakan, surat_tanggapan, tanggapan_reviewer</td></tr>
     </table>
   </div>
 
@@ -107,6 +107,18 @@
       <tr><td class="k"><span class="fk">🔗 actor_id</span></td><td class="ty">uuid</td></tr>
       <tr><td class="k">catatan</td><td class="ty">text</td></tr>
       <tr><td class="k muted">timestamps · softDeletes</td><td class="ty"></td></tr>
+    </table>
+  </div>
+
+  <div class="ent c-core">
+    <div class="hd">proposal_reviewers <small>penugasan</small></div>
+    <table>
+      <tr><td class="k"><span class="pk">🔑 id</span></td><td class="ty">uuid</td></tr>
+      <tr><td class="k"><span class="fk">🔗 proposal_id</span></td><td class="ty">uuid</td></tr>
+      <tr><td class="k"><span class="fk">🔗 reviewer_id</span></td><td class="ty">uuid</td></tr>
+      <tr><td class="k">status</td><td class="ty">varchar</td></tr>
+      <tr><td class="k muted">timestamps · softDeletes</td><td class="ty"></td></tr>
+      <tr><td colspan="2" class="muted" style="font-size:8px">KEPK menunjuk ≥1 reviewer; status: menunggu|acc|revisi. Semua acc → proposal otomatis "Disetujui Reviewer". Revisi peneliti → semua reset "menunggu".</td></tr>
     </table>
   </div>
 
@@ -205,6 +217,7 @@
     <div class="hd">respon</div>
     <table>
       <tr><td class="k"><span class="pk">🔑 id</span></td><td class="ty">uuid</td></tr>
+      <tr><td class="k"><span class="fk">🔗 proposal_id</span></td><td class="ty">uuid</td></tr>
       <tr><td class="k"><span class="fk">🔗 responden_id</span></td><td class="ty">uuid</td></tr>
       <tr><td class="k">responden</td><td class="ty">varchar</td></tr>
       <tr><td class="k">jenis_responden</td><td class="ty">varchar</td></tr>
@@ -249,6 +262,9 @@
   <tr><td>proposal</td><td>1 — N</td><td>proposal_documents</td><td>proposal_id</td></tr>
   <tr><td>proposal</td><td>1 — N</td><td>proposal_status_history</td><td>proposal_id</td></tr>
   <tr><td>proposal</td><td>1 — N</td><td>proposal_reviews</td><td>proposal_id</td></tr>
+  <tr><td>proposal</td><td>1 — N</td><td>proposal_reviewers (penugasan)</td><td>proposal_id</td></tr>
+  <tr><td>users (role reviewer)</td><td>1 — N</td><td>proposal_reviewers</td><td>reviewer_id</td></tr>
+  <tr><td>proposal</td><td>1 — 1</td><td>respon (survey per proposal)</td><td>respon.proposal_id</td></tr>
   <tr><td>users</td><td>1 — N</td><td>proposal_documents / _status_history / _reviews</td><td>uploaded_by / actor_id / reviewer_id</td></tr>
   <tr><td>master_aspek</td><td>1 — N</td><td>master_pertanyaan</td><td>master_aspek_id</td></tr>
   <tr><td>respon</td><td>1 — N</td><td>jawaban</td><td>respon_id</td></tr>

@@ -39,7 +39,7 @@ class SurveyGateTest extends TestCase
             'peneliti_utama' => 'X', 'judul_penelitian' => 'Y', 'user_id' => $pemilik->id,
         ]);
 
-        foreach ([S::MenungguPresentasi, S::MenungguKelengkapanBerkasEtik, S::MenungguReviewReviewer,
+        foreach ([S::MenungguPresentasi, S::MenungguKelengkapanBerkasEtik, S::MenungguPenunjukanReviewer, S::MenungguReviewReviewer,
             S::DisetujuiReviewer, S::MenungguPembayaran, S::MenungguVerifikasiPembayaran,
             S::PelaksanaanPenelitian, S::MenungguVerifikasiAkhir, S::MenungguSurveyKepuasan] as $ke) {
             $wf->transition($p, $ke);

@@ -10,6 +10,7 @@ enum ProposalStatus: string
     case MenungguPresentasi = 'Menunggu Presentasi';
     case Ditolak = 'Ditolak';
     case MenungguKelengkapanBerkasEtik = 'Menunggu Kelengkapan Berkas Etik';
+    case MenungguPenunjukanReviewer = 'Menunggu Penunjukan Reviewer';
     case MenungguReviewReviewer = 'Menunggu Review Reviewer';
     case PerluRevisiReviewer = 'Perlu Revisi Reviewer';
     case DisetujuiReviewer = 'Disetujui Reviewer';
@@ -28,8 +29,9 @@ enum ProposalStatus: string
         return match ($this) {
             self::MenungguVerifikasiBerkas, self::PerluRevisiProposal,
             self::MenungguVerifikasiRevisi, self::MenungguPresentasi => 1,
-            self::MenungguKelengkapanBerkasEtik, self::MenungguReviewReviewer,
-            self::PerluRevisiReviewer, self::DisetujuiReviewer => 2,
+            self::MenungguKelengkapanBerkasEtik, self::MenungguPenunjukanReviewer,
+            self::MenungguReviewReviewer, self::PerluRevisiReviewer,
+            self::DisetujuiReviewer => 2,
             self::MenungguPembayaran, self::MenungguVerifikasiPembayaran => 3,
             self::PelaksanaanPenelitian, self::MenungguVerifikasiAkhir,
             self::MenungguSurveyKepuasan => 4,
@@ -41,8 +43,9 @@ enum ProposalStatus: string
     public function unit(): ?Unit
     {
         return match ($this) {
-            self::MenungguReviewReviewer, self::PerluRevisiReviewer => Unit::Reviewer,
-            self::MenungguKelengkapanBerkasEtik, self::DisetujuiReviewer,
+            self::MenungguReviewReviewer => Unit::Reviewer,
+            self::MenungguKelengkapanBerkasEtik, self::MenungguPenunjukanReviewer,
+            self::PerluRevisiReviewer, self::DisetujuiReviewer,
             self::DitolakKajiEtik => Unit::KajiEtik,
             self::Selesai, self::Dibatalkan => null,
             default => Unit::Penelitian,
@@ -64,9 +67,11 @@ enum ProposalStatus: string
             self::PerluRevisiProposal => [self::MenungguVerifikasiRevisi],
             self::MenungguVerifikasiRevisi => [self::PerluRevisiProposal, self::MenungguPresentasi, self::Ditolak],
             self::MenungguPresentasi => [self::MenungguKelengkapanBerkasEtik, self::PerluRevisiProposal, self::Ditolak],
-            // Tahap 2 (KEPK + Reviewer)
-            self::MenungguKelengkapanBerkasEtik => [self::MenungguReviewReviewer, self::DitolakKajiEtik],
-            self::MenungguReviewReviewer => [self::PerluRevisiReviewer, self::DisetujuiReviewer],
+            // Tahap 2 (KEPK + Reviewer) — KEPK perantara: tunjuk reviewer,
+            // terima jawaban reviewer, teruskan revisi ke peneliti.
+            self::MenungguKelengkapanBerkasEtik => [self::MenungguPenunjukanReviewer, self::DitolakKajiEtik],
+            self::MenungguPenunjukanReviewer => [self::MenungguReviewReviewer, self::DitolakKajiEtik],
+            self::MenungguReviewReviewer => [self::PerluRevisiReviewer, self::DisetujuiReviewer, self::DitolakKajiEtik],
             self::PerluRevisiReviewer => [self::MenungguReviewReviewer],
             self::DisetujuiReviewer => [self::MenungguPembayaran, self::DitolakKajiEtik],
             // Tahap 3 (CRU)

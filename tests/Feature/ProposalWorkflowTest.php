@@ -69,6 +69,7 @@ class ProposalWorkflowTest extends TestCase
         $jalur = [
             S::MenungguPresentasi,
             S::MenungguKelengkapanBerkasEtik,
+            S::MenungguPenunjukanReviewer,
             S::MenungguReviewReviewer,
             S::DisetujuiReviewer,
             S::MenungguPembayaran,
@@ -86,21 +87,21 @@ class ProposalWorkflowTest extends TestCase
         $this->assertSame(S::Selesai, $p->fresh()->status);
         $this->assertTrue($p->fresh()->isi_survey_kepuasan);
         $this->assertNull($p->fresh()->unit_sekarang);
-        // 1 pengajuan + 10 transisi
-        $this->assertSame(11, $p->statusHistory()->count());
+        // 1 pengajuan + 11 transisi
+        $this->assertSame(12, $p->statusHistory()->count());
     }
 
     public function test_loop_revisi_reviewer_bisa_lebih_dari_sekali(): void
     {
         $p = $this->buatProposal();
-        foreach ([S::MenungguPresentasi, S::MenungguKelengkapanBerkasEtik, S::MenungguReviewReviewer] as $ke) {
+        foreach ([S::MenungguPresentasi, S::MenungguKelengkapanBerkasEtik, S::MenungguPenunjukanReviewer, S::MenungguReviewReviewer] as $ke) {
             $this->wf->transition($p, $ke);
         }
 
         // Dua ronde revisi
         foreach (range(1, 2) as $i) {
             $this->wf->transition($p, S::PerluRevisiReviewer);
-            $this->assertSame(Unit::Reviewer, $p->unit_sekarang);
+            $this->assertSame(Unit::KajiEtik, $p->unit_sekarang); // KEPK memantau loop revisi
             $this->wf->transition($p, S::MenungguReviewReviewer);
         }
 
@@ -119,7 +120,7 @@ class ProposalWorkflowTest extends TestCase
     public function test_transisi_mundur_d4_pembayaran_dan_laporan(): void
     {
         $p = $this->buatProposal();
-        foreach ([S::MenungguPresentasi, S::MenungguKelengkapanBerkasEtik, S::MenungguReviewReviewer,
+        foreach ([S::MenungguPresentasi, S::MenungguKelengkapanBerkasEtik, S::MenungguPenunjukanReviewer, S::MenungguReviewReviewer,
             S::DisetujuiReviewer, S::MenungguPembayaran, S::MenungguVerifikasiPembayaran] as $ke) {
             $this->wf->transition($p, $ke);
         }
