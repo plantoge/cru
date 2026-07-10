@@ -341,10 +341,19 @@ class Show extends Component
         $this->success('Reviewer ditugaskan.');
     }
 
-    /** KEPK meneruskan masukan reviewer ke peneliti (identitas reviewer tetap rahasia). */
+    /**
+     * KEPK meneruskan masukan reviewer ke peneliti (identitas reviewer tetap rahasia).
+     * Hanya bisa bila sudah ADA reviewer yang meminta revisi — keputusan KEPK
+     * mengikuti hasil review, bukan inisiatif sendiri.
+     */
     public function kepkTeruskanRevisi()
     {
         abort_unless(auth()->user()->can('kaji-etik.update'), 403);
+        abort_unless(
+            $this->proposal->reviewerAssignments()->where('status', 'revisi')->exists(),
+            403,
+            'Belum ada reviewer yang meminta revisi',
+        );
         $this->validate(['catatan' => 'required|string'], [], ['catatan' => 'catatan untuk peneliti']);
 
         $this->pindah(ProposalStatus::PerluRevisiReviewer, $this->catatan);

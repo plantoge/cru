@@ -221,16 +221,28 @@
                         @endforeach
                         </tbody>
                     </table>
+                    @php
+                        $adaRevisi = $assignments->contains('status', 'revisi');
+                        $masihMenunggu = $assignments->contains('status', 'menunggu');
+                    @endphp
+
+                    @if ($masihMenunggu && ! $adaRevisi)
+                        <x-mary-alert icon="o-clock" class="alert-info mb-2">
+                            Menunggu tanggapan reviewer. Keputusan (teruskan revisi / lanjut) mengikuti hasil review.
+                        </x-mary-alert>
+                    @endif
+
                     <x-mary-textarea label="Catatan untuk peneliti / alasan" wire:model="catatan" rows="2"
                         hint="Saat meneruskan revisi, rangkum masukan reviewer di sini — nama reviewer jangan disebut." />
+
                     <x-slot:actions>
-                        @if ($proposal->status === ProposalStatus::MenungguReviewReviewer)
+                        @if ($adaRevisi && $proposal->status === ProposalStatus::MenungguReviewReviewer)
                             <x-mary-button label="Teruskan Revisi ke Peneliti" wire:click="kepkTeruskanRevisi" class="btn-warning" spinner />
                         @endif
                         @if ($proposal->semuaReviewerAcc())
                             <x-mary-button label="Lanjut ke Pembayaran" wire:click="kepkLanjut" class="btn-success" spinner />
                         @endif
-                        <x-mary-button label="Tolak Kaji Etik" wire:click="kepkTolak" class="btn-error" spinner
+                        <x-mary-button label="Tolak Kaji Etik" wire:click="kepkTolak" class="btn-error btn-outline" spinner
                             wire:confirm="Tolak secara etik? Status ini terminal." />
                     </x-slot:actions>
                 </x-mary-card>
