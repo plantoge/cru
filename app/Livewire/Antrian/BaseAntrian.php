@@ -13,6 +13,9 @@ abstract class BaseAntrian extends Component
 
     public string $cari = '';
 
+    /** antrian = butuh aksi sekarang; riwayat = semua yang pernah lewat unit ini. */
+    public string $tab = 'antrian';
+
     abstract protected function unit(): Unit;
 
     abstract protected function judul(): string;
@@ -23,19 +26,39 @@ abstract class BaseAntrian extends Component
         return Proposal::query()->where('unit_sekarang', $this->unit()->value);
     }
 
+    /** Riwayat: seluruh proposal yang pernah melewati unit ini (untuk pemantauan). */
+    protected function riwayatQuery()
+    {
+        return Proposal::query()->whereHas('statusHistory', fn ($q) => $q
+            ->where('unit', $this->unit()->value));
+    }
+
+    public function updatedTab(): void
+    {
+        $this->resetPage();
+    }
+
+    public function updatedCari(): void
+    {
+        $this->resetPage();
+    }
+
     public function render()
     {
-        $proposals = $this->query()
+        $riwayat = $this->tab === 'riwayat';
+
+        $proposals = ($riwayat ? $this->riwayatQuery() : $this->query())
             ->when($this->cari, fn ($q) => $q->where(fn ($w) => $w
                 ->where('kode', 'ilike', "%{$this->cari}%")
                 ->orWhere('judul_penelitian', 'ilike', "%{$this->cari}%")
                 ->orWhere('peneliti_utama', 'ilike', "%{$this->cari}%")))
-            ->oldest('updated_at')
+            ->orderBy('updated_at', $riwayat ? 'desc' : 'asc')
             ->paginate(15);
 
         return view('livewire.antrian.index', [
             'proposals' => $proposals,
             'judul' => $this->judul(),
+            'riwayat' => $riwayat,
         ])->title($this->judul());
     }
 }

@@ -27,4 +27,12 @@ class Reviewer extends BaseAntrian
                 ->where('reviewer_id', auth()->id())
                 ->where('status', 'menunggu'));
     }
+
+    /** Riwayat: semua proposal yang pernah ditugaskan ke reviewer ini. */
+    protected function riwayatQuery()
+    {
+        return Proposal::query()
+            ->whereHas('reviewerAssignments', fn ($q) => $q
+                ->where('reviewer_id', auth()->id()));
+    }
 }
