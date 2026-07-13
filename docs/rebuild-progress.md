@@ -56,19 +56,22 @@ Celah kecil (tidak memblokir): `proposal_status_history` kena softDeletes + `upd
 2. **Tahap 3, dua pembayaran:** `bukti_bayar` dipecah `bukti_bayar_cru` + `bukti_bayar_kepk` (keduanya wajib). Verifikasi tetap satu pintu CRU. **Payment gateway menyusul setelah alur dikonfirmasi benar.**
 3. Docs disinkronkan: prd.md (§4, §7b enum+tabel, §7c, §8.5 baru `proposal_reviewers`) + 3 HTML + 3 PDF di-regenerate (perlu `--headless=new` di Edge).
 
-## F11 — Verifikasi email registrasi (2026-07-13) — TERPASANG, KEY BELUM DIISI
+## F11 — Verifikasi email registrasi (2026-07-13) — TERPASANG & AKTIF (mode sandbox)
 
 Peneliti daftar → dikirim link verifikasi (`Illuminate\Auth\Notifications\VerifyEmail` via event `Registered`) → sebelum klik, semua route ke-gate middleware `verified` (redirect ke `/email/verify`, halaman ada tombol kirim ulang). User demo dari `UserSeeder` sudah `email_verified_at => now()` jadi tidak ke-gate. Provider: **Resend** (`resend/resend-laravel` v1.4), dipilih user — gratis 3rb email/bulan, setup lebih gampang & deliverability lebih baik dari Gmail SMTP (limit 500/hari, rawan block).
 
 File: `app/Models/User.php` (implements `MustVerifyEmail`), `app/Livewire/Auth/Register.php` (fire `Registered` event), `app/Livewire/Auth/VerifyEmailNotice.php` + view, `app/Http/Controllers/Auth/VerifyEmailController.php`, `routes/web.php` (group `auth`+`verified` baru).
 
-**Status sekarang:** `MAIL_MAILER=log` di `.env` — email verifikasi tercatat ke `storage/logs/laravel.log`, BUKAN terkirim asli. Test (`EmailVerificationTest`, 4 test) pakai `Notification::fake()`/signed-URL langsung, gak butuh key.
+**PENTING — nama env var:** package `resend/resend-laravel` baca **`RESEND_API_KEY`**, BUKAN `RESEND_KEY` (salah tulis di commit awal, sudah diperbaiki di `.env.example`). Cek `config/services.php` → `'resend' => ['key' => env('RESEND_API_KEY')]`.
 
-**Yang user harus kerjakan sendiri sebelum email beneran jalan (gak bisa diotomasi dari sini):**
-1. Daftar akun gratis di resend.com.
-2. Verifikasi domain pengirim di dashboard Resend (tambah DNS record SPF/DKIM ke domain sendiri). Tanpa domain sendiri, Resend kasih domain sandbox tapi cuma bisa kirim ke email yang didaftarkan sendiri — untuk produksi tetap butuh domain sendiri.
-3. Generate API key di dashboard Resend.
-4. Isi `.env`: `RESEND_KEY=re_xxxxx` dan ganti `MAIL_MAILER=log` → `MAIL_MAILER=resend`. Set `MAIL_FROM_ADDRESS` ke alamat di domain terverifikasi (mis. `noreply@domainkamu.com`).
+**Status sekarang (2026-07-13):** `MAIL_MAILER=resend` + `RESEND_API_KEY` sudah diisi user, AKTIF kirim asli. `MAIL_FROM_ADDRESS=onboarding@resend.dev` (domain sandbox Resend, pre-verified) — **batasannya cuma bisa kirim ke email yang dipakai daftar akun Resend itu sendiri**, kalau daftar user baru pakai email lain bakal gagal dengan pesan beda lagi ("You can only send testing emails to your own email address"). Test (`EmailVerificationTest`, 4 test) tetap pakai `Notification::fake()`/signed-URL langsung, gak kena limitasi ini.
+
+**Buat produksi (kirim ke sembarang email pendaftar), user perlu:**
+1. Punya domain sendiri (mis. `eproposal-rspi.id`).
+2. Tambah domain itu di resend.com/domains → Resend kasih DNS record (SPF/DKIM/DMARC) → tambahkan ke DNS management domain (Cloudflare/Niagahoster/dst) → tunggu status "Verified" di dashboard Resend (biasanya menit-jam, tergantung propagasi DNS).
+3. Ganti `.env`: `MAIL_FROM_ADDRESS=noreply@eproposal-rspi.id` (atau alamat apa pun di domain terverifikasi itu).
+
+**Kenapa gak bisa pakai `MAIL_FROM_ADDRESS=nama@gmail.com`?** Resend (dan provider transactional sejenis: SendGrid/Mailgun/Postmark) nolak kirim atas nama domain yang gak dibuktikan kepemilikannya via DNS — ini anti-spoofing, kalau boleh sembarangan siapa saja bisa ngaku-ngaku kirim dari `@gmail.com`/`@bankmana.com` buat phishing. Makanya domain verification wajib.
 
 ## Catatan berjalan
 
