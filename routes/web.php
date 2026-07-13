@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Auth\VerifyEmailController;
 use App\Http\Controllers\DocumentDownloadController;
 use App\Livewire;
 use Illuminate\Support\Facades\Auth;
@@ -21,7 +22,15 @@ Route::post('/logout', function () {
     return redirect()->route('login');
 })->middleware('auth')->name('logout');
 
+// Verifikasi email — sengaja di luar middleware 'verified' (di sinilah
+// user yang BELUM verified diarahkan; kalau ikut di-gate 'verified' akan loop).
 Route::middleware('auth')->group(function () {
+    Route::get('/email/verify', Livewire\Auth\VerifyEmailNotice::class)->name('verification.notice');
+    Route::get('/email/verify/{id}/{hash}', VerifyEmailController::class)
+        ->middleware(['signed', 'throttle:6,1'])->name('verification.verify');
+});
+
+Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/dashboard', Livewire\Dashboard::class)
         ->middleware('permission:dashboard.read')->name('dashboard');
 

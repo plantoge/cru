@@ -3,6 +3,7 @@
 namespace App\Livewire\Auth;
 
 use App\Models\User;
+use Illuminate\Auth\Events\Registered;
 use Illuminate\Support\Facades\Auth;
 use Livewire\Attributes\Layout;
 use Livewire\Component;
@@ -34,6 +35,8 @@ class Register extends Component
 
         $user = User::create($data);
         $user->assignRole('peneliti');
+
+        event(new Registered($user)); // trigger kirim email verifikasi (VerifyEmail notification)
 
         Auth::login($user);
         session()->regenerate();

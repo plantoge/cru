@@ -20,6 +20,7 @@ class UserSeeder extends Seeder
                     'username' => $role,
                     'password' => $password,
                     'institusi_asal' => 'RSPI',
+                    'email_verified_at' => now(), // demo — tak perlu klik link verifikasi
                 ],
             );
 
@@ -29,7 +30,7 @@ class UserSeeder extends Seeder
         // Reviewer kedua — uji penugasan multi-reviewer oleh KEPK
         $r2 = User::firstOrCreate(
             ['email' => 'reviewer2@eproposal.test'],
-            ['name' => 'Reviewer Demo 2', 'username' => 'reviewer2', 'password' => $password, 'institusi_asal' => 'RSPI'],
+            ['name' => 'Reviewer Demo 2', 'username' => 'reviewer2', 'password' => $password, 'institusi_asal' => 'RSPI', 'email_verified_at' => now()],
         );
         $r2->syncRoles(['reviewer']);
     }

@@ -56,6 +56,20 @@ Celah kecil (tidak memblokir): `proposal_status_history` kena softDeletes + `upd
 2. **Tahap 3, dua pembayaran:** `bukti_bayar` dipecah `bukti_bayar_cru` + `bukti_bayar_kepk` (keduanya wajib). Verifikasi tetap satu pintu CRU. **Payment gateway menyusul setelah alur dikonfirmasi benar.**
 3. Docs disinkronkan: prd.md (§4, §7b enum+tabel, §7c, §8.5 baru `proposal_reviewers`) + 3 HTML + 3 PDF di-regenerate (perlu `--headless=new` di Edge).
 
+## F11 — Verifikasi email registrasi (2026-07-13) — TERPASANG, KEY BELUM DIISI
+
+Peneliti daftar → dikirim link verifikasi (`Illuminate\Auth\Notifications\VerifyEmail` via event `Registered`) → sebelum klik, semua route ke-gate middleware `verified` (redirect ke `/email/verify`, halaman ada tombol kirim ulang). User demo dari `UserSeeder` sudah `email_verified_at => now()` jadi tidak ke-gate. Provider: **Resend** (`resend/resend-laravel` v1.4), dipilih user — gratis 3rb email/bulan, setup lebih gampang & deliverability lebih baik dari Gmail SMTP (limit 500/hari, rawan block).
+
+File: `app/Models/User.php` (implements `MustVerifyEmail`), `app/Livewire/Auth/Register.php` (fire `Registered` event), `app/Livewire/Auth/VerifyEmailNotice.php` + view, `app/Http/Controllers/Auth/VerifyEmailController.php`, `routes/web.php` (group `auth`+`verified` baru).
+
+**Status sekarang:** `MAIL_MAILER=log` di `.env` — email verifikasi tercatat ke `storage/logs/laravel.log`, BUKAN terkirim asli. Test (`EmailVerificationTest`, 4 test) pakai `Notification::fake()`/signed-URL langsung, gak butuh key.
+
+**Yang user harus kerjakan sendiri sebelum email beneran jalan (gak bisa diotomasi dari sini):**
+1. Daftar akun gratis di resend.com.
+2. Verifikasi domain pengirim di dashboard Resend (tambah DNS record SPF/DKIM ke domain sendiri). Tanpa domain sendiri, Resend kasih domain sandbox tapi cuma bisa kirim ke email yang didaftarkan sendiri — untuk produksi tetap butuh domain sendiri.
+3. Generate API key di dashboard Resend.
+4. Isi `.env`: `RESEND_KEY=re_xxxxx` dan ganti `MAIL_MAILER=log` → `MAIL_MAILER=resend`. Set `MAIL_FROM_ADDRESS` ke alamat di domain terverifikasi (mis. `noreply@domainkamu.com`).
+
 ## Catatan berjalan
 
 - `app/Helpers/ResponseFormatter.php` sisa app lama, `namespace app\Helpers` huruf kecil → langgar PSR-4. Perbaiki atau hapus saat menyentuh file ini.
