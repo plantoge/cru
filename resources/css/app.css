@@ -1,8 +1,14 @@
 @import 'tailwindcss';
 
 @plugin "daisyui" {
-    themes: light --default, dark --prefersdark, cupcake, corporate, emerald, nord, winter, night, dracula, retro;
+    /* Tanpa --prefersdark: tema TIDAK mengikuti OS, murni pilihan user
+       (tersimpan di localStorage, diterapkan via data-theme di <html>). */
+    themes: light --default, dark, cupcake, corporate, emerald, nord, winter, night, dracula, retro;
 }
+
+/* Utilitas dark: (dipakai komponen Mary UI) ikut tema daisyUI yang gelap,
+   bukan prefers-color-scheme OS. */
+@custom-variant dark (&:where([data-theme=dark] *, [data-theme=dark], [data-theme=night] *, [data-theme=night], [data-theme=dracula] *, [data-theme=dracula]));
 
 @source '../../vendor/laravel/framework/src/Illuminate/Pagination/resources/views/*.blade.php';
 @source '../../vendor/robsontenorio/mary/src/View/Components/**/*.php';
