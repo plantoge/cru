@@ -11,6 +11,7 @@ use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Notification;
 use Illuminate\Support\Facades\URL;
 use Livewire\Livewire;
+use Livewire\Features\SupportTesting\Testable;
 use Spatie\Permission\Models\Role;
 use Tests\TestCase;
 
@@ -26,19 +27,26 @@ class EmailVerificationTest extends TestCase
         Role::findByName('peneliti')->givePermissionTo('dashboard.read');
     }
 
-    // ===== Toggle ON: EMAIL_VERIFICATION_REQUIRED=true =====
+    /** Ambil jawaban captcha yang benar dari session (server-side), isi ke form. */
+    protected function isiCaptchaBenar(Testable $test): Testable
+    {
+        $jawaban = session('captcha_'.$test->get('captchaId'));
+
+        return $test->set('captchaAnswer', (string) $jawaban);
+    }
 
     public function test_toggle_on_registrasi_kirim_notifikasi_verify_email(): void
     {
         config(['eproposal.email_verification_required' => true]);
         Notification::fake();
 
-        Livewire::test(Register::class)
+        $test = Livewire::test(Register::class)
             ->set('name', 'Peneliti Baru')
             ->set('email', 'baru@test.local')
             ->set('password', 'password123')
-            ->set('password_confirmation', 'password123')
-            ->call('register');
+            ->set('password_confirmation', 'password123');
+
+        $this->isiCaptchaBenar($test)->call('register');
 
         $user = User::where('email', 'baru@test.local')->firstOrFail();
 
@@ -86,19 +94,18 @@ class EmailVerificationTest extends TestCase
         $this->actingAs($user)->get('/dashboard')->assertOk();
     }
 
-    // ===== Toggle OFF (default): EMAIL_VERIFICATION_REQUIRED=false =====
-
     public function test_toggle_off_registrasi_langsung_verified_tanpa_kirim_email(): void
     {
         config(['eproposal.email_verification_required' => false]);
         Notification::fake();
 
-        Livewire::test(Register::class)
+        $test = Livewire::test(Register::class)
             ->set('name', 'Peneliti Baru')
             ->set('email', 'offtoggle@test.local')
             ->set('password', 'password123')
-            ->set('password_confirmation', 'password123')
-            ->call('register');
+            ->set('password_confirmation', 'password123');
+
+        $this->isiCaptchaBenar($test)->call('register');
 
         $user = User::where('email', 'offtoggle@test.local')->firstOrFail();
 

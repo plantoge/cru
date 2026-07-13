@@ -78,6 +78,16 @@ File: `app/Models/User.php` (`MustVerifyEmail`), `app/Livewire/Auth/Register.php
 3. `.env`: `EMAIL_VERIFICATION_REQUIRED=true`.
 4. `php artisan config:clear` (config custom kayak gini sensitif ke cache).
 
+## F12 — Captcha login & registrasi (2026-07-13) — TERPASANG, self-hosted
+
+**Percobaan pertama pakai Cloudflare Turnstile sempat dipasang & di-commit, lalu di-revert total** (dianggap "terlalu rumit" oleh user). Diganti **math captcha self-hosted** — soal hitung sederhana (mis. `7 + 3`), jawaban dicek di server, **nol dependency eksternal, nol panggilan API, nol ekstensi PHP tambahan** (gak butuh GD dkk).
+
+Mekanisme: `app/Services/MathCaptcha.php` generate soal (dua angka 1-15, operator `+`/`-`), simpan jawaban benar di **session server-side saja** (gak pernah dikirim ke client — beda dari naive approach nyimpen expected value di public property Livewire, yang bakal bocor ke HTML page source lewat snapshot Livewire). Sekali pakai — session key dihapus begitu diverifikasi (replay ditolak, teruji `CaptchaTest::test_token_sekali_pakai_gagal_kalau_dipakai_ulang`).
+
+File: `app/Services/MathCaptcha.php`, `app/Rules/ValidCaptcha.php` (ValidationRule, terima `$captchaId` lewat constructor saat rule dibentuk di komponen), `resources/views/components/captcha.blade.php` (widget: pertanyaan + input angka + tombol ganti soal, murni Blade/Livewire — gak ada JS/CDN sama sekali). Dipasang di `Login.php` & `Register.php`: property `captchaId`/`captchaQuestion`/`captchaAnswer`, `mount()` generate soal awal, `regenerateCaptcha()` dipanggil ulang tiap validasi gagal ATAU auth gagal (lewat try/catch `ValidationException` di `register()`, biar soal captcha lama gak bisa dipakai ulang).
+
+Test: `tests/Feature/CaptchaTest.php` (8 test — service langsung + integrasi Login/Register) + `EmailVerificationTest.php` diupdate (helper `isiCaptchaBenar()` ambil jawaban dari session, gak fake/skip). Total 40 test lulus, gak ada lagi dependency `Http::fake()` buat captcha (beda dari Turnstile yang butuh fake network di base `TestCase.php` — sekarang dihapus lagi karena gak relevan).
+
 ## Catatan berjalan
 
 - `app/Helpers/ResponseFormatter.php` sisa app lama, `namespace app\Helpers` huruf kecil → langgar PSR-4. Perbaiki atau hapus saat menyentuh file ini.

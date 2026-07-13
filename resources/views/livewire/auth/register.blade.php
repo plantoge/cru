@@ -6,6 +6,7 @@
         <x-mary-input label="Institusi asal" wire:model="institusi_asal" icon="o-building-library" />
         <x-mary-input label="Password" wire:model="password" icon="o-key" type="password" required />
         <x-mary-input label="Ulangi password" wire:model="password_confirmation" icon="o-key" type="password" required />
+        <x-captcha :question="$captchaQuestion" />
         <x-slot:actions>
             <x-mary-button label="Sudah punya akun" link="{{ route('login') }}" class="btn-ghost" />
             <x-mary-button label="Daftar" type="submit" icon="o-user-plus" class="btn-primary" spinner="register" />
