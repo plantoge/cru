@@ -1,7 +1,7 @@
 @import 'tailwindcss';
 
 @plugin "daisyui" {
-    themes: light --default, dark --prefersdark;
+    themes: light --default, dark --prefersdark, cupcake, corporate, emerald, nord, winter, night, dracula, retro;
 }
 
 @source '../../vendor/laravel/framework/src/Illuminate/Pagination/resources/views/*.blade.php';
