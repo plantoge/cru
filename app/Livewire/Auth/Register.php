@@ -36,7 +36,11 @@ class Register extends Component
         $user = User::create($data);
         $user->assignRole('peneliti');
 
-        event(new Registered($user)); // trigger kirim email verifikasi (VerifyEmail notification)
+        if (config('eproposal.email_verification_required')) {
+            event(new Registered($user)); // trigger kirim email verifikasi (VerifyEmail notification)
+        } else {
+            $user->markEmailAsVerified(); // fitur dimatikan — langsung aktif, tak coba kirim email
+        }
 
         Auth::login($user);
         session()->regenerate();

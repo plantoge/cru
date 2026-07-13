@@ -30,7 +30,8 @@ Route::middleware('auth')->group(function () {
         ->middleware(['signed', 'throttle:6,1'])->name('verification.verify');
 });
 
-Route::middleware(['auth', 'verified'])->group(function () {
+// verified.optional = middleware 'verified' yang hormati toggle EMAIL_VERIFICATION_REQUIRED.
+Route::middleware(['auth', 'verified.optional'])->group(function () {
     Route::get('/dashboard', Livewire\Dashboard::class)
         ->middleware('permission:dashboard.read')->name('dashboard');
 

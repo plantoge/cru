@@ -14,6 +14,7 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->alias([
             'role' => \Spatie\Permission\Middleware\RoleMiddleware::class,
             'permission' => \Spatie\Permission\Middleware\PermissionMiddleware::class,
+            'verified.optional' => \App\Http\Middleware\EnsureEmailIsVerifiedIfRequired::class,
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {

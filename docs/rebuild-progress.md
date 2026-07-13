@@ -56,22 +56,27 @@ Celah kecil (tidak memblokir): `proposal_status_history` kena softDeletes + `upd
 2. **Tahap 3, dua pembayaran:** `bukti_bayar` dipecah `bukti_bayar_cru` + `bukti_bayar_kepk` (keduanya wajib). Verifikasi tetap satu pintu CRU. **Payment gateway menyusul setelah alur dikonfirmasi benar.**
 3. Docs disinkronkan: prd.md (§4, §7b enum+tabel, §7c, §8.5 baru `proposal_reviewers`) + 3 HTML + 3 PDF di-regenerate (perlu `--headless=new` di Edge).
 
-## F11 — Verifikasi email registrasi (2026-07-13) — TERPASANG & AKTIF (mode sandbox)
+## F11 — Verifikasi email registrasi (2026-07-13) — TERPASANG, dengan TOGGLE ON/OFF
 
-Peneliti daftar → dikirim link verifikasi (`Illuminate\Auth\Notifications\VerifyEmail` via event `Registered`) → sebelum klik, semua route ke-gate middleware `verified` (redirect ke `/email/verify`, halaman ada tombol kirim ulang). User demo dari `UserSeeder` sudah `email_verified_at => now()` jadi tidak ke-gate. Provider: **Resend** (`resend/resend-laravel` v1.4), dipilih user — gratis 3rb email/bulan, setup lebih gampang & deliverability lebih baik dari Gmail SMTP (limit 500/hari, rawan block).
+Peneliti daftar → (kalau toggle ON) dikirim link verifikasi (`Illuminate\Auth\Notifications\VerifyEmail` via event `Registered`) → sebelum klik, route ke-gate (redirect ke `/email/verify`, halaman ada tombol kirim ulang). User demo dari `UserSeeder` sudah `email_verified_at => now()` jadi tidak ke-gate. Provider: **Resend** (`resend/resend-laravel` v1.4) — gratis 3rb email/bulan, setup lebih gampang & deliverability lebih baik dari Gmail SMTP (limit 500/hari, rawan block).
 
-File: `app/Models/User.php` (implements `MustVerifyEmail`), `app/Livewire/Auth/Register.php` (fire `Registered` event), `app/Livewire/Auth/VerifyEmailNotice.php` + view, `app/Http/Controllers/Auth/VerifyEmailController.php`, `routes/web.php` (group `auth`+`verified` baru).
+**Toggle** `EMAIL_VERIFICATION_REQUIRED` (`.env`, dibaca `config/eproposal.php`) — ditambah karena domain pengirim (`suliantisarosohospital.com`) belum terverifikasi di Resend, jadi email gagal terkirim saat registrasi (blocking, bikin proses daftar ikut gagal). Default **`false`**:
+- **`false`** (skarang): daftar langsung `email_verified_at` terisi, **tidak ada percobaan kirim email sama sekali** — aman dipakai selama domain belum verified.
+- **`true`**: alur wajib verifikasi penuh seperti biasa — nyalakan begitu domain sudah status "Verified" di resend.com/domains.
 
-**PENTING — nama env var:** package `resend/resend-laravel` baca **`RESEND_API_KEY`**, BUKAN `RESEND_KEY` (salah tulis di commit awal, sudah diperbaiki di `.env.example`). Cek `config/services.php` → `'resend' => ['key' => env('RESEND_API_KEY')]`.
+Mekanisme gating pakai middleware custom `verified.optional` (`app/Http/Middleware/EnsureEmailIsVerifiedIfRequired.php`, alias di `bootstrap/app.php`) — **bukan** middleware bawaan `verified` yang dipasang kondisional saat route register. Alasan: keputusan dicek saat request (baca `config()` tiap kali), bukan dibekukan saat route didaftarkan — jadi toggle langsung berlaku tanpa perlu `route:cache` ulang, dan gampang di-test per-skenario (`config(['eproposal.email_verification_required' => true])` di dalam method test).
 
-**Status sekarang (2026-07-13):** `MAIL_MAILER=resend` + `RESEND_API_KEY` sudah diisi user, AKTIF kirim asli. `MAIL_FROM_ADDRESS=onboarding@resend.dev` (domain sandbox Resend, pre-verified) — **batasannya cuma bisa kirim ke email yang dipakai daftar akun Resend itu sendiri**, kalau daftar user baru pakai email lain bakal gagal dengan pesan beda lagi ("You can only send testing emails to your own email address"). Test (`EmailVerificationTest`, 4 test) tetap pakai `Notification::fake()`/signed-URL langsung, gak kena limitasi ini.
+File: `app/Models/User.php` (`MustVerifyEmail`), `app/Livewire/Auth/Register.php` (conditional: fire `Registered` event ATAU `markEmailAsVerified()` langsung), `app/Http/Middleware/EnsureEmailIsVerifiedIfRequired.php`, `config/eproposal.php`, `routes/web.php` (`verified.optional` bukan `verified`).
 
-**Buat produksi (kirim ke sembarang email pendaftar), user perlu:**
-1. Punya domain sendiri (mis. `eproposal-rspi.id`).
-2. Tambah domain itu di resend.com/domains → Resend kasih DNS record (SPF/DKIM/DMARC) → tambahkan ke DNS management domain (Cloudflare/Niagahoster/dst) → tunggu status "Verified" di dashboard Resend (biasanya menit-jam, tergantung propagasi DNS).
-3. Ganti `.env`: `MAIL_FROM_ADDRESS=noreply@eproposal-rspi.id` (atau alamat apa pun di domain terverifikasi itu).
+**PENTING — nama env var Resend:** package baca **`RESEND_API_KEY`**, BUKAN `RESEND_KEY` (salah tulis di commit awal, sudah diperbaiki). Cek `config/services.php` → `'resend' => ['key' => env('RESEND_API_KEY')]`.
 
-**Kenapa gak bisa pakai `MAIL_FROM_ADDRESS=nama@gmail.com`?** Resend (dan provider transactional sejenis: SendGrid/Mailgun/Postmark) nolak kirim atas nama domain yang gak dibuktikan kepemilikannya via DNS — ini anti-spoofing, kalau boleh sembarangan siapa saja bisa ngaku-ngaku kirim dari `@gmail.com`/`@bankmana.com` buat phishing. Makanya domain verification wajib.
+**Kenapa domain verification wajib** (bukan bisa pakai `MAIL_FROM_ADDRESS=nama@gmail.com`): Resend (dan provider transactional sejenis: SendGrid/Mailgun/Postmark) nolak kirim atas nama domain yang gak dibuktikan kepemilikannya via DNS — anti-spoofing, kalau boleh sembarangan siapa saja bisa ngaku-ngaku kirim dari `@gmail.com`/`@bankmana.com` buat phishing.
+
+**Langkah nyalain lagi pas siap** (toggle ON + domain verified):
+1. Tambah domain (mis. `suliantisarosohospital.com`) di resend.com/domains → Resend kasih DNS record (SPF/DKIM/DMARC) → tambahkan ke DNS management domain → tunggu status "Verified".
+2. `.env`: `MAIL_FROM_ADDRESS=noreply@suliantisarosohospital.com` (alamat apa pun di domain terverifikasi itu).
+3. `.env`: `EMAIL_VERIFICATION_REQUIRED=true`.
+4. `php artisan config:clear` (config custom kayak gini sensitif ke cache).
 
 ## Catatan berjalan
 
