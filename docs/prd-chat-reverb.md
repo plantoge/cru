@@ -1,8 +1,6 @@
 # PRD — Chat Real-time per Proposal (Laravel Reverb)
 
-> **Status: RANCANGAN, belum diimplementasikan.** Bagian dari F10 (`docs/rebuild-progress.md`). Dokumen terpisah dari `docs/prd.md` supaya spec inti tidak membengkak — begitu disetujui & dibangun, ringkasannya digabung ke `rebuild-progress.md`.
->
-> Dicek 2026-07-13: `laravel/reverb` **belum ter-install**, `routes/channels.php` **belum ada**, `BROADCAST_CONNECTION=log` (belum aktif). Semua di bawah ini rancangan dari nol.
+> **Status: DIBANGUN 2026-07-13** (C1 dikunci: langsung Reverb, bukan polling). R1–R3 & R5 selesai; R4 (badge unread) belum. Ringkasan hasil bangun & cara jalanin ada di `docs/rebuild-progress.md` §F13. Dokumen ini tetap jadi acuan desain.
 
 ---
 
@@ -147,10 +145,18 @@ Implikasi buat RS (infra internal, Windows/Laragon per `toolchain-paths` memory)
 | C2 | Kalau pilih Reverb: siapa yang supervisi proses `reverb:start` biar auto-restart | NSSM (Windows Service) / Task Scheduler / lainnya — infra RS, di luar kendali kode |
 | C3 | Retensi pesan — disimpan selamanya (ikut softDeletes proposal) atau ada kebijakan arsip/hapus setelah proposal `Selesai` sekian lama | Belum diputuskan, ranah kebijakan RS bukan teknis |
 
-## 9. Fase implementasi (kalau disetujui)
+## 9. Fase implementasi
 
-- **R1** — Migration `proposal_messages` + model + `Proposal::bisaChat()` helper (reuse otorisasi).
-- **R2** — Komponen `Chat.php` + view, mode **polling** dulu (`wire:poll`) — jalan tanpa Reverb sama sekali, bisa dites & dipakai user secepatnya.
-- **R3** — (opsional, setelah C1 dikunci) `composer require laravel/reverb`, event `ProposalMessageSent`, `routes/channels.php`, ganti polling jadi Echo listener.
-- **R4** — Badge unread count di sidebar/dashboard.
-- **R5** — Test: otorisasi per-role (termasuk **reviewer harus 403**), kirim/terima pesan, isolasi antar proposal (pesan proposal A gak bocor ke B — pola yang sama dipakai `SurveyGateTest`).
+- [x] **R1** — Migration `proposal_messages` + model + `Proposal::bisaChat()` helper (reuse otorisasi).
+- [x] **R2** — Komponen `Chat.php` + view (bubble chat, `x-mary-card`).
+- [x] **R3** — C1 dikunci langsung Reverb (bukan polling): `composer require laravel/reverb` + `laravel-echo`/`pusher-js`, event `ProposalMessageSent` (`ShouldBroadcastNow`), `routes/channels.php`, `resources/js/echo.js`, listener `#[On('echo-private:proposal.{proposal.id},ProposalMessageSent')]`.
+- [ ] **R4** — Badge unread count di sidebar/dashboard. *(belum, follow-up)*
+- [x] **R5** — `tests/Feature/ChatTest.php`, 12 test: otorisasi per-role (reviewer 403 dua lapis — `bisaChat()` langsung + `mount()`), kirim/terima pesan, isolasi antar proposal, widget tak muncul di UI untuk reviewer.
+
+### Jebakan yang kena & fix-nya
+
+1. **`php artisan reverb:install --no-interaction` crash** (`TypeError` di `Laravel\Prompts\select()`) — command ini masih minta pilih driver secara interaktif meski `--no-interaction`, dan prompt-nya gak punya default fallback. Untungnya sempat jalan sebagian sebelum crash: `bootstrap/app.php` ke-update otomatis (`channels: routes/channels.php`), `.env` dapet `REVERB_APP_ID/KEY/SECRET/HOST/PORT/SCHEME` (digenerate lokal, bukan dari akun luar) + `VITE_REVERB_*`, `config/broadcasting.php` & `routes/channels.php` ter-publish (placeholder, ditimpa manual). Yang perlu dilengkapi manual: `BROADCAST_CONNECTION` (masih `log`, ganti ke `reverb`), `resources/js/echo.js` (belum dibuat sama sekali), `resources/js/bootstrap.js` (belum import echo).
+2. **`Proposal::bisaChat()` SENGAJA lebih sempit dari akses lihat halaman** (`Proposal\Show::mount()`). Reviewer boleh **lihat** proposal yang ditugaskan ke dia (buat kerja reviewnya), tapi TIDAK boleh **chat**. Widget Chat cuma di-embed di `show.blade.php` untuk `$isPemilik || $isCru || $isKepk` — kalau lupa kondisi ini, reviewer yang buka halaman proposal akan ke-403 seketika (component mount gagal), bukan cuma "gak lihat tombol chat".
+3. **Urutan kode di `mount()` penting**: `abort_unless()` harus dipanggil **setelah** `$this->proposal` di-assign, bukan sebelumnya. Kalau kebalik, proses internal Livewire yang butuh akses `$this->proposal` saat menangani exception nemu property masih kosong → `ErrorException` yang membingungkan, bukan `HttpException` 403 yang bersih.
+4. **`broadcast($event)->toOthers()` di dalam kode yang diuji via `Livewire::test()`** — `PendingBroadcast::__destruct()` yang beneran mengirim event, dan timing `__destruct()` (garbage collection PHP) gak deterministik relatif ke siklus hydrate/dehydrate Livewire saat testing → bikin `Livewire::test()` gagal decode snapshot komponen dengan pesan error yang gak nyambung sama sekali ke kodenya. Fix: `Event::fake([ProposalMessageSent::class])` di `setUp()` test.
+5. **`Livewire::test(Chat::class, [...])` tidak mem-propagate `HttpException` dari `mount()` ke pemanggil test** untuk komponen non-full-page (beda dari komponen full-page yang di-mount lewat route HTTP, exception-nya diproses middleware+handler standar Laravel). Diverifikasi lewat debug manual — `abort_unless()` betul-betul dipanggil dengan kondisi `false`, tapi `Livewire::test()` tetap "sukses" tanpa exception apa pun. Fix: untuk kasus ini, test manggil `(new Chat())->mount($proposal)` langsung (PHP call biasa, bukan lewat testing harness Livewire), plus test pelengkap yang verifikasi widget gak muncul di response HTTP halaman (defense-in-depth di level UI).

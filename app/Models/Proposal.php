@@ -59,6 +59,23 @@ class Proposal extends Model
         return $this->hasMany(ProposalReviewerAssignment::class, 'proposal_id');
     }
 
+    public function messages()
+    {
+        return $this->hasMany(ProposalMessage::class, 'proposal_id')->orderBy('created_at');
+    }
+
+    /**
+     * Otorisasi chat — SENGAJA lebih sempit dari akses lihat proposal
+     * (Proposal\Show::mount()): pemilik, atau petugas CRU/KEPK. Reviewer
+     * TIDAK PERNAH boleh chat dengan peneliti (kerahasiaan identitas
+     * reviewer, prd-chat-reverb.md §2).
+     */
+    public function bisaChat(User $user): bool
+    {
+        return $this->user_id === $user->id
+            || $user->canAny(['antrian-cru.read', 'kaji-etik.read']);
+    }
+
     /** Semua reviewer yang ditugaskan sudah ACC (syarat KEPK lanjut). */
     public function semuaReviewerAcc(): bool
     {

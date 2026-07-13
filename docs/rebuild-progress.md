@@ -88,6 +88,23 @@ File: `app/Services/MathCaptcha.php`, `app/Rules/ValidCaptcha.php` (ValidationRu
 
 Test: `tests/Feature/CaptchaTest.php` (8 test — service langsung + integrasi Login/Register) + `EmailVerificationTest.php` diupdate (helper `isiCaptchaBenar()` ambil jawaban dari session, gak fake/skip). Total 40 test lulus, gak ada lagi dependency `Http::fake()` buat captcha (beda dari Turnstile yang butuh fake network di base `TestCase.php` — sekarang dihapus lagi karena gak relevan).
 
+## F13 — Chat real-time per proposal (2026-07-13) — R1-R3+R5 TERPASANG, R4 belum
+
+Rancangan lengkap: `docs/prd-chat-reverb.md`. Ringkasan: chat kontekstual per proposal (bukan DM bebas), pakai **Laravel Reverb** (WebSocket self-hosted, dipilih user — C1 dikunci langsung Reverb, bukan mulai dari polling). **Reviewer sengaja TIDAK bisa chat** — `Proposal::bisaChat()` cuma izinkan pemilik + CRU + KEPK, kerahasiaan identitas reviewer tetap terjaga sama seperti alur review yang sudah ada.
+
+File baru: `app/Models/ProposalMessage.php`, `app/Events/ProposalMessageSent.php`, `app/Livewire/Proposal/Chat.php` + view, `routes/channels.php`, `resources/js/echo.js`, migration `proposal_messages`. Total test **52 lulus** (12 baru dari `ChatTest.php`).
+
+**Cara jalanin (2 proses tambahan yang harus JALAN & DIJAGA sendiri — bukan `artisan serve` biasa):**
+```bash
+PHP='/c/laragon/bin/php/php-8.4.12-nts-Win32-vs17-x64/php.exe'
+"$PHP" artisan reverb:start   # proses WebSocket, HARUS tetap nyala
+"$PHP" artisan serve          # proses biasa, terminal terpisah
+npm run build                 # atau npm run dev — echo.js perlu ke-bundle
+```
+Belum diputuskan siapa yang supervisi `reverb:start` biar auto-restart di produksi (NSSM/Task Scheduler/lainnya — C2 di PRD, ranah infra RS bukan kode). Tanpa proses ini jalan, chat tetap berfungsi (pesan tersimpan normal) tapi TIDAK real-time — perlu refresh manual buat lihat pesan baru.
+
+**Jebakan yang kena (detail lengkap ada di prd-chat-reverb.md §9):** `reverb:install --no-interaction` crash di tengah (Laravel Prompts bug) — beres sebagian otomatis (`.env` REVERB_*, `bootstrap/app.php` channels), sisanya (`BROADCAST_CONNECTION`, `resources/js/echo.js`) dilengkapi manual; urutan `abort_unless()` harus SETELAH assign property Livewire; `broadcast()->toOthers()` butuh `Event::fake()` di test (timing `__destruct()` gak deterministik); `Livewire::test()` gak propagate exception `mount()` untuk komponen non-full-page — test 403 manggil `mount()` langsung.
+
 ## Catatan berjalan
 
 - `app/Helpers/ResponseFormatter.php` sisa app lama, `namespace app\Helpers` huruf kecil → langgar PSR-4. Perbaiki atau hapus saat menyentuh file ini.
