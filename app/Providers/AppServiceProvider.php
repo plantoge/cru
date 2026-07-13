@@ -5,6 +5,7 @@ namespace App\Providers;
 use App\Models\Menu;
 use App\Observers\MenuObserver;
 use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\Blade;
 use Illuminate\Support\ServiceProvider;
 
 class AppServiceProvider extends ServiceProvider
@@ -31,5 +32,10 @@ class AppServiceProvider extends ServiceProvider
         });
 
         Menu::observe(MenuObserver::class);
+
+        // Workaround bug Mary UI 2.9: Tab.php memanggil <x-badge> tanpa prefix,
+        // tapi 'badge' tidak masuk daftar alias internal provider Mary — sehingga
+        // dengan prefix 'mary-' semua halaman ber-x-mary-tab gagal compile.
+        Blade::component('badge', \Mary\View\Components\Badge::class);
     }
 }
