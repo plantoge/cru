@@ -5,12 +5,16 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>{{ $title ?? config('app.name') }}</title>
-    {{-- Terapkan tema tersimpan SEBELUM render agar tidak berkedip --}}
+    {{-- Terapkan tema tersimpan SEBELUM render agar tidak berkedip.
+         Dipasang ulang di livewire:navigated karena wire:navigate
+         men-swap dokumen tanpa menjalankan ulang script head. --}}
     <script>
-        (function () {
+        window.applyTheme = function () {
             const t = localStorage.getItem('theme');
             if (t) document.documentElement.setAttribute('data-theme', t);
-        })();
+        };
+        window.applyTheme();
+        document.addEventListener('livewire:navigated', window.applyTheme);
     </script>
     @vite(['resources/css/app.css', 'resources/js/app.js'])
 </head>

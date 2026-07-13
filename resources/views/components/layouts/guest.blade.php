@@ -6,10 +6,12 @@
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>{{ $title ?? config('app.name') }}</title>
     <script>
-        (function () {
+        window.applyTheme = function () {
             const t = localStorage.getItem('theme');
             if (t) document.documentElement.setAttribute('data-theme', t);
-        })();
+        };
+        window.applyTheme();
+        document.addEventListener('livewire:navigated', window.applyTheme);
     </script>
     @vite(['resources/css/app.css', 'resources/js/app.js'])
 </head>
