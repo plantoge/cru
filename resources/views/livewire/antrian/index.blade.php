@@ -15,8 +15,9 @@
     </div>
 
     <x-mary-card shadow>
-        <div class="overflow-x-auto">
-            <table class="table">
+        {{-- max-h + table-pin-rows: header tetap terbaca saat scroll --}}
+        <div class="overflow-x-auto overflow-y-auto max-h-[65vh]">
+            <table class="table table-pin-rows">
                 <thead><tr><th>Kode</th><th>Peneliti</th><th>Judul</th><th>Tahap</th><th>Status</th><th>Update</th><th></th></tr></thead>
                 <tbody>
                 @forelse ($proposals as $p)
@@ -42,14 +43,15 @@
                 @endforelse
                 </tbody>
             </table>
+
+            @if ($adaLagi)
+                {{-- Sentinel di DALAM kontainer scroll agar terpicu saat scroll internal --}}
+                <div x-intersect="$wire.muatLagi()" class="py-4 text-center" wire:key="sentinel-{{ $tab }}-{{ $proposals->count() }}">
+                    <span class="loading loading-dots loading-md opacity-50"></span>
+                </div>
+            @elseif ($proposals->isNotEmpty())
+                <div class="py-3 text-center text-xs opacity-40">Semua data sudah ditampilkan ({{ $proposals->count() }})</div>
+            @endif
         </div>
-        @if ($adaLagi)
-            {{-- Infinite scroll: saat sentinel terlihat, muat 15 baris berikutnya --}}
-            <div x-intersect="$wire.muatLagi()" class="py-4 text-center" wire:key="sentinel-{{ $tab }}-{{ $proposals->count() }}">
-                <span class="loading loading-dots loading-md opacity-50"></span>
-            </div>
-        @elseif ($proposals->isNotEmpty())
-            <div class="py-3 text-center text-xs opacity-40">Semua data sudah ditampilkan ({{ $proposals->count() }})</div>
-        @endif
     </x-mary-card>
 </div>

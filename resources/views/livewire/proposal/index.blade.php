@@ -11,8 +11,8 @@
     </x-mary-header>
 
     <x-mary-card shadow>
-        <div class="overflow-x-auto">
-            <table class="table">
+        <div class="overflow-x-auto overflow-y-auto max-h-[65vh]">
+            <table class="table table-pin-rows">
                 <thead><tr><th>Kode</th><th>Judul</th><th>Tahap</th><th>Status</th><th>Diajukan</th><th></th></tr></thead>
                 <tbody>
                 @forelse ($proposals as $p)
@@ -29,13 +29,14 @@
                 @endforelse
                 </tbody>
             </table>
+
+            @if ($adaLagi)
+                <div x-intersect="$wire.muatLagi()" class="py-4 text-center" wire:key="sentinel-{{ $proposals->count() }}">
+                    <span class="loading loading-dots loading-md opacity-50"></span>
+                </div>
+            @elseif ($proposals->isNotEmpty())
+                <div class="py-3 text-center text-xs opacity-40">Semua data sudah ditampilkan ({{ $proposals->count() }})</div>
+            @endif
         </div>
-        @if ($adaLagi)
-            <div x-intersect="$wire.muatLagi()" class="py-4 text-center" wire:key="sentinel-{{ $proposals->count() }}">
-                <span class="loading loading-dots loading-md opacity-50"></span>
-            </div>
-        @elseif ($proposals->isNotEmpty())
-            <div class="py-3 text-center text-xs opacity-40">Semua data sudah ditampilkan ({{ $proposals->count() }})</div>
-        @endif
     </x-mary-card>
 </div>
