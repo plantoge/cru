@@ -1,6 +1,16 @@
 # PRD — Chat Real-time per Proposal (Laravel Reverb)
 
-> **Status: DIBANGUN 2026-07-13** (C1 dikunci: langsung Reverb, bukan polling). R1–R3 & R5 selesai; R4 (badge unread) belum. Ringkasan hasil bangun & cara jalanin ada di `docs/rebuild-progress.md` §F13. Dokumen ini tetap jadi acuan desain.
+> **Status: DIHAPUS 2026-07-16 — fitur tidak ada lagi di aplikasi.**
+>
+> Sempat dibangun 2026-07-13 (C1 dikunci: langsung Reverb; R1–R3 & R5 selesai, R4 belum), lalu **dicabut total** atas keputusan user: beban operasional Reverb (proses `reverb:start` yang harus jalan terus + supervisi C2 yang tak kunjung diputuskan + port firewall) dinilai tidak sepadan dengan manfaatnya, apalagi selama badge unread (R4) belum ada sehingga chat cuma "hidup" bagi orang yang kebetulan sedang membuka halaman proposal itu.
+>
+> Yang ikut terhapus: tabel `proposal_messages` (isinya 32 pesan, semuanya data uji coba), model, event, komponen Livewire + view, `routes/channels.php`, `resources/js/echo.js`, `config/reverb.php`, `config/broadcasting.php`, `tests/Feature/ChatTest.php`, paket `laravel/reverb` + `laravel-echo` + `pusher-js`, dan semua `.env` `REVERB_*`.
+>
+> **Dokumen ini sengaja dipertahankan sebagai acuan kalau chat mau dibangun ulang.** Kode lamanya utuh di commit `68cfd52` (`git show 68cfd52`) — termasuk semua jebakan yang sudah terpecahkan di §9, jangan buang waktu menemukannya dua kali.
+>
+> **Kalau dibangun ulang nanti, pertimbangkan `wire:poll` dulu, bukan Reverb** — sudah tersedia di Livewire 3.8.2 yang terpasang (`vendor/livewire/livewire/dist/livewire.js`, directive `poll` dari `js/directives/wire-poll.js`; murni sisi browser, tak butuh proses server apa pun). Trade-off cuma delay ~3 detik, tanpa satu pun beban operasional di atas. Ini persis rekomendasi awal C1 di §8 yang waktu itu tidak diambil.
+
+---
 
 ---
 

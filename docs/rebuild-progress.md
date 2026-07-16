@@ -46,7 +46,7 @@ Celah kecil (tidak memblokir): `proposal_status_history` kena softDeletes + `upd
 - [x] **F7 — Tahap 2 (KEPK + Reviewer).** Berkas etik 4 wajib, loop reviewer (ronde di `proposal_reviews`), ACC, KEPK lanjut/tolak.
 - [x] **F8 — Tahap 3.** Bukti bayar + verifikasi/tolak (D4) + info rekening dari `informasi_kontak`.
 - [x] **F9 — Tahap 4.** Draft izin, laporan+raw data, izin final, **survey gate** di `DocumentDownloadController` (uji: `SurveyGateTest`).
-- [ ] **F10 — Pelengkap.** Laravel Reverb (notif realtime), export laporan Excel, object storage S3/MinIO (sekarang: disk lokal `public` via controller ber-otorisasi), reset password email.
+- [ ] **F10 — Pelengkap.** Export laporan Excel, object storage S3/MinIO (sekarang: disk lokal `public` via controller ber-otorisasi), reset password email. *(Laravel Reverb dicoret — lihat F13, dihapus 2026-07-16.)*
 
 **Verifikasi terakhir (2026-07-10):** `artisan test` 25 lulus / 51 assertion; `view:cache` bersih. Semua aksi UI lewat `ProposalWorkflow` — jangan set `proposal->status` langsung.
 
@@ -88,7 +88,17 @@ File: `app/Services/MathCaptcha.php`, `app/Rules/ValidCaptcha.php` (ValidationRu
 
 Test: `tests/Feature/CaptchaTest.php` (8 test — service langsung + integrasi Login/Register) + `EmailVerificationTest.php` diupdate (helper `isiCaptchaBenar()` ambil jawaban dari session, gak fake/skip). Total 40 test lulus, gak ada lagi dependency `Http::fake()` buat captcha (beda dari Turnstile yang butuh fake network di base `TestCase.php` — sekarang dihapus lagi karena gak relevan).
 
-## F13 — Chat real-time per proposal (2026-07-13) — R1-R3+R5 TERPASANG, R4 belum
+## F13 — Chat real-time per proposal (2026-07-13) — ~~TERPASANG~~ **DIHAPUS TOTAL 2026-07-16**
+
+**Fitur chat sudah TIDAK ADA di aplikasi.** Jangan cari `ProposalMessage`, `Chat.php`, `bisaChat()`, atau `reverb:start` — semuanya sudah dicabut. Alasan: user menilai Reverb terlalu rumit dioperasikan (proses `reverb:start` wajib jalan terus, supervisi C2 tak kunjung diputuskan, port firewall) dan manfaatnya belum sepadan — badge unread (R4) belum ada, jadi chat cuma real-time buat orang yang kebetulan sedang membuka halaman proposal itu.
+
+Dihapus: tabel `proposal_messages` (32 baris, semua data uji), `app/Models/ProposalMessage.php`, `app/Events/ProposalMessageSent.php`, `app/Livewire/Proposal/Chat.php` + view, `routes/channels.php`, `resources/js/echo.js`, `config/reverb.php`, `config/broadcasting.php`, migration, `tests/Feature/ChatTest.php`; paket `laravel/reverb`/`laravel-echo`/`pusher-js`; `.env` `REVERB_*` (`BROADCAST_CONNECTION` → `log`); sisipan di `Proposal.php` (`messages()`, `bisaChat()`), `show.blade.php`, `bootstrap/app.php` (`channels:`), `bootstrap.js` (`import './echo'`).
+
+**Kalau mau dibangun ulang:** kode lengkapnya utuh di commit `68cfd52` (`git show 68cfd52`) dan desainnya di `docs/prd-chat-reverb.md` — tapi **pakai `wire:poll` (Livewire 3.8.2 sudah punya), bukan Reverb.** Delay ~3 detik, nol proses tambahan.
+
+<details>
+<summary>Catatan versi lama (saat masih terpasang) — arsip</summary>
+
 
 Rancangan lengkap: `docs/prd-chat-reverb.md`. Ringkasan: chat kontekstual per proposal (bukan DM bebas), pakai **Laravel Reverb** (WebSocket self-hosted, dipilih user — C1 dikunci langsung Reverb, bukan mulai dari polling). **Reviewer sengaja TIDAK bisa chat** — `Proposal::bisaChat()` cuma izinkan pemilik + CRU + KEPK, kerahasiaan identitas reviewer tetap terjaga sama seperti alur review yang sudah ada.
 
@@ -104,6 +114,8 @@ npm run build                 # atau npm run dev — echo.js perlu ke-bundle
 Belum diputuskan siapa yang supervisi `reverb:start` biar auto-restart di produksi (NSSM/Task Scheduler/lainnya — C2 di PRD, ranah infra RS bukan kode). Tanpa proses ini jalan, chat tetap berfungsi (pesan tersimpan normal) tapi TIDAK real-time — perlu refresh manual buat lihat pesan baru.
 
 **Jebakan yang kena (detail lengkap ada di prd-chat-reverb.md §9):** `reverb:install --no-interaction` crash di tengah (Laravel Prompts bug) — beres sebagian otomatis (`.env` REVERB_*, `bootstrap/app.php` channels), sisanya (`BROADCAST_CONNECTION`, `resources/js/echo.js`) dilengkapi manual; urutan `abort_unless()` harus SETELAH assign property Livewire; `broadcast()->toOthers()` butuh `Event::fake()` di test (timing `__destruct()` gak deterministik); `Livewire::test()` gak propagate exception `mount()` untuk komponen non-full-page — test 403 manggil `mount()` langsung.
+
+</details>
 
 ## Catatan berjalan
 

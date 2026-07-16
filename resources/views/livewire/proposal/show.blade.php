@@ -268,11 +268,6 @@
 
         {{-- Kolom kanan: riwayat --}}
         <div class="space-y-6">
-            {{-- Chat SENGAJA tidak untuk reviewer — kerahasiaan identitas (Proposal::bisaChat()) --}}
-            @if ($isPemilik || $isCru || $isKepk)
-                <livewire:proposal.chat :proposal="$proposal" :key="'chat-'.$proposal->id" />
-            @endif
-
             @if ($bolehLihatReview && $reviews->isNotEmpty())
                 <x-mary-card title="Komentar Reviewer" subtitle="Tidak terlihat oleh peneliti" shadow>
                     @foreach ($reviews as $r)
