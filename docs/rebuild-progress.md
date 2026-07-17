@@ -46,7 +46,8 @@ Celah kecil (tidak memblokir): `proposal_status_history` kena softDeletes + `upd
 - [x] **F7 — Tahap 2 (KEPK + Reviewer).** Berkas etik 4 wajib, loop reviewer (ronde di `proposal_reviews`), ACC, KEPK lanjut/tolak.
 - [x] **F8 — Tahap 3.** Bukti bayar + verifikasi/tolak (D4) + info rekening dari `informasi_kontak`.
 - [x] **F9 — Tahap 4.** Draft izin, laporan+raw data, izin final, **survey gate** di `DocumentDownloadController` (uji: `SurveyGateTest`).
-- [ ] **F10 — Pelengkap.** Export laporan Excel, object storage S3/MinIO (sekarang: disk lokal `public` via controller ber-otorisasi), reset password email. *(Laravel Reverb dicoret — lihat F13, dihapus 2026-07-16.)*
+- [ ] **F10 — Pelengkap.** Export laporan Excel, reset password email. *(Laravel Reverb dicoret — lihat F13, dihapus 2026-07-16. Object storage dicoret — diganti F14, terpasang 2026-07-16.)*
+- [x] **F14 — Penyimpanan file keluar dari folder app (2026-07-16).** Disk baru `dokumen` (`config/filesystems.php`, root = env `DOCUMENTS_PATH`, dev/prod: `D:\eproposal-files`, fallback `storage/app/dokumen`) menggantikan hardcode `'public'` di `ProposalWorkflow::simpanDokumen()` & `DocumentDownloadController`. Privat — tanpa `url`/`serve`, akses hanya via controller ber-otorisasi. Kolom `path` relatif → nol perubahan DB; file lama di-robocopy ke folder baru (folder lama masih ada sebagai cadangan, boleh dihapus). Bonus fix: limit temp upload Livewire 12 MB < validasi RawData 20 MB → dinaikkan ke 25 MB (`config/livewire.php` baru dipublish). MinIO/SFTP/S3-cloud dipertimbangkan lalu ditolak (data RS tetap internal, tanpa server tambahan) — jalur upgrade: ganti definisi disk `dokumen` saja. Panduan setup dev & deploy: `docs/setup-file-storage.md`.
 
 **Verifikasi terakhir (2026-07-10):** `artisan test` 25 lulus / 51 assertion; `view:cache` bersih. Semua aksi UI lewat `ProposalWorkflow` — jangan set `proposal->status` langsung.
 

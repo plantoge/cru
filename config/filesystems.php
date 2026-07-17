@@ -47,6 +47,16 @@ return [
             'report' => false,
         ],
 
+        // Dokumen proposal — di LUAR folder aplikasi (DOCUMENTS_PATH), privat:
+        // tanpa 'url'/'serve', hanya bisa diakses via DocumentDownloadController.
+        'dokumen' => [
+            'driver' => 'local',
+            'root' => env('DOCUMENTS_PATH', storage_path('app/dokumen')),
+            'serve' => false,
+            'throw' => false,
+            'report' => false,
+        ],
+
         's3' => [
             'driver' => 's3',
             'key' => env('AWS_ACCESS_KEY_ID'),

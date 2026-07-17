@@ -81,7 +81,7 @@ class ProposalWorkflow
             ->where('jenis', $jenis->value)
             ->max('versi') + 1;
 
-        $path = $file->store("proposal/{$proposal->id}/{$jenis->value}", 'public');
+        $path = $file->store("proposal/{$proposal->id}/{$jenis->value}", 'dokumen');
 
         return ProposalDocument::create([
             'proposal_id' => $proposal->id,

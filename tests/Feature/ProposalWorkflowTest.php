@@ -161,7 +161,7 @@ class ProposalWorkflowTest extends TestCase
 
     public function test_versi_dokumen_bertambah_per_jenis(): void
     {
-        \Illuminate\Support\Facades\Storage::fake('public');
+        \Illuminate\Support\Facades\Storage::fake('dokumen');
         $p = $this->buatProposal();
         $f = \Illuminate\Http\UploadedFile::fake()->create('proposal.pdf', 100, 'application/pdf');
 

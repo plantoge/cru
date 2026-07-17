@@ -24,7 +24,7 @@ class SurveyGateTest extends TestCase
     {
         parent::setUp();
         $this->seed(RoleSeeder::class);
-        Storage::fake('public');
+        Storage::fake('dokumen');
 
         $this->peneliti = User::factory()->create();
         $this->peneliti->assignRole('peneliti');
@@ -45,7 +45,7 @@ class SurveyGateTest extends TestCase
             $wf->transition($p, $ke);
         }
 
-        Storage::disk('public')->put("izin/{$p->id}.pdf", 'PDF');
+        Storage::disk('dokumen')->put("izin/{$p->id}.pdf", 'PDF');
 
         $doc = ProposalDocument::create([
             'proposal_id' => $p->id,

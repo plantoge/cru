@@ -97,7 +97,7 @@ Mengakses **audit trail / log** seluruh aktivitas (perubahan status, akses data,
 | UI | Livewire 3 + Tailwind + **daisyUI + Mary UI** (dipilih). *Catatan: Filament tidak dipakai (preferensi tim); Flux UI berbayar.* |
 | Otorisasi | **spatie/laravel-permission** — ya, standar & paling matang untuk RBAC (role & permission granular). Direkomendasikan. |
 | Realtime / Chat | **Tidak ada (dihapus 2026-07-16).** Chat via Laravel Reverb sempat dibangun (F13) lalu dicabut — beban operasionalnya (proses `reverb:start` yang harus dijaga hidup + supervisi + firewall) tidak sepadan. Lihat `prd-chat-reverb.md`. |
-| Penyimpanan file | **Jangan di dalam app.** Rekomendasi: **object storage S3-compatible** — **MinIO** (self-host, cocok on-prem RS) atau **AWS S3**, diakses via `Storage::disk('s3')`. Alternatif: tetap **SFTP/NAS** jika infrastruktur sudah ada. |
+| Penyimpanan file | **Folder khusus di luar aplikasi** via disk `dokumen` (`DOCUMENTS_PATH`, mis. `D:\eproposal-files`) — diputuskan 2026-07-16, panduan di `setup-file-storage.md`. Privat, hanya via `DocumentDownloadController`. MinIO/S3 ditolak untuk saat ini; upgrade nanti cukup ganti definisi disk. |
 | Database | PostgreSQL (schema `eproposal`, `survey`, `public`) |
 | Export/Spreadsheet | Maatwebsite Excel + PhpSpreadsheet |
 | Primary Key | UUID (UUIDv7 untuk entitas transaksional) |

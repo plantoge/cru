@@ -37,8 +37,8 @@ class DocumentDownloadController extends Controller
             abort(403, 'Surat izin final terkunci — isi survey kepuasan terlebih dahulu.');
         }
 
-        abort_unless(Storage::disk('public')->exists($document->path), 404);
+        abort_unless(Storage::disk('dokumen')->exists($document->path), 404);
 
-        return Storage::disk('public')->download($document->path, $document->nama_asli);
+        return Storage::disk('dokumen')->download($document->path, $document->nama_asli);
     }
 }
