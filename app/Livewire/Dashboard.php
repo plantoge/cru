@@ -25,6 +25,9 @@ class Dashboard extends Component
             'antrian_reviewer' => Proposal::where('unit_sekarang', Unit::Reviewer->value)->count(),
         ];
 
+        // Pemisah ribuan gaya Indonesia — tanpa ini angka besar tampil "1000000".
+        $stat = array_map(fn (int $n) => number_format($n, 0, ',', '.'), $stat);
+
         $milikSaya = $user->hasRole('peneliti')
             ? $user->proposals()->latest()->limit(5)->get()
             : collect();

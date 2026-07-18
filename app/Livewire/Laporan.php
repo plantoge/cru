@@ -17,14 +17,19 @@ class Laporan extends Component
         $q = Proposal::where('tahun', (int) $this->tahun);
 
         $perStatus = (clone $q)->selectRaw('status, count(*) as jml')
-            ->groupBy('status')->orderByDesc('jml')->pluck('jml', 'status');
+            ->groupBy('status')->orderByDesc('jml')
+            ->pluck('jml', 'status')
+            ->map(fn (int $n) => number_format($n, 0, ',', '.'));
 
         $tahunTersedia = Proposal::selectRaw('distinct tahun')->orderByDesc('tahun')->pluck('tahun');
 
+        // Pemisah ribuan gaya Indonesia — konsisten dengan Dashboard.
+        $angka = fn (int $n) => number_format($n, 0, ',', '.');
+
         return view('livewire.laporan', [
-            'total' => (clone $q)->count(),
-            'selesai' => (clone $q)->where('status', ProposalStatus::Selesai->value)->count(),
-            'ditolak' => (clone $q)->whereIn('status', [ProposalStatus::Ditolak->value, ProposalStatus::DitolakKajiEtik->value])->count(),
+            'total' => $angka((clone $q)->count()),
+            'selesai' => $angka((clone $q)->where('status', ProposalStatus::Selesai->value)->count()),
+            'ditolak' => $angka((clone $q)->whereIn('status', [ProposalStatus::Ditolak->value, ProposalStatus::DitolakKajiEtik->value])->count()),
             'perStatus' => $perStatus,
             'tahunTersedia' => $tahunTersedia,
         ])->title('Laporan');
