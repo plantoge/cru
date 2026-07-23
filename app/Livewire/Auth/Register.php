@@ -18,13 +18,7 @@ class Register extends Component
 
     public string $email = '';
 
-    public string $phone = '';
-
-    public string $institusi_asal = '';
-
     public string $password = '';
-
-    public string $password_confirmation = '';
 
     public string $captchaId = '';
 
@@ -51,9 +45,7 @@ class Register extends Component
             $data = $this->validate([
                 'name' => 'required|string|max:255',
                 'email' => 'required|email|unique:users,email',
-                'phone' => 'nullable|string|max:30',
-                'institusi_asal' => 'nullable|string|max:255',
-                'password' => 'required|min:8|confirmed',
+                'password' => 'required|min:8',
                 'captchaAnswer' => ['required', new ValidCaptcha($this->captchaId)],
             ]);
         } catch (ValidationException $e) {

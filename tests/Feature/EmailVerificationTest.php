@@ -43,8 +43,7 @@ class EmailVerificationTest extends TestCase
         $test = Livewire::test(Register::class)
             ->set('name', 'Peneliti Baru')
             ->set('email', 'baru@test.local')
-            ->set('password', 'password123')
-            ->set('password_confirmation', 'password123');
+            ->set('password', 'password123');
 
         $this->isiCaptchaBenar($test)->call('register');
 
@@ -102,8 +101,7 @@ class EmailVerificationTest extends TestCase
         $test = Livewire::test(Register::class)
             ->set('name', 'Peneliti Baru')
             ->set('email', 'offtoggle@test.local')
-            ->set('password', 'password123')
-            ->set('password_confirmation', 'password123');
+            ->set('password', 'password123');
 
         $this->isiCaptchaBenar($test)->call('register');
 

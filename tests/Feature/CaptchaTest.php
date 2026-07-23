@@ -102,7 +102,6 @@ class CaptchaTest extends TestCase
             ->set('name', 'Peneliti Uji')
             ->set('email', 'peneliti-uji@test.local')
             ->set('password', 'password123')
-            ->set('password_confirmation', 'password123')
             ->call('register')
             ->assertHasErrors('captchaAnswer');
 
