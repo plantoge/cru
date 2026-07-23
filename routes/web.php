@@ -23,11 +23,11 @@ Route::post('/logout', function () {
 })->middleware('auth')->name('logout');
 
 // Verifikasi email — sengaja di luar middleware 'verified' (di sinilah
+Route::get('/email/verify/{id}/{hash}', VerifyEmailController::class)
+    ->middleware(['signed', 'throttle:6,1'])->name('verification.verify');
 // user yang BELUM verified diarahkan; kalau ikut di-gate 'verified' akan loop).
 Route::middleware('auth')->group(function () {
     Route::get('/email/verify', Livewire\Auth\VerifyEmailNotice::class)->name('verification.notice');
-    Route::get('/email/verify/{id}/{hash}', VerifyEmailController::class)
-        ->middleware(['signed', 'throttle:6,1'])->name('verification.verify');
 });
 
 // verified.optional = middleware 'verified' yang hormati toggle EMAIL_VERIFICATION_REQUIRED.
