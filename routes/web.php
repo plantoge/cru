@@ -12,6 +12,8 @@ Route::get('/', fn () => redirect()->route(Auth::check() ? 'dashboard' : 'login'
 Route::middleware('guest')->group(function () {
     Route::get('/login', Livewire\Auth\Login::class)->name('login');
     Route::get('/register', Livewire\Auth\Register::class)->name('register');
+    Route::get('/forgot-password', Livewire\Auth\ForgotPassword::class)->name('password.request');
+    Route::get('/reset-password/{token}', Livewire\Auth\ResetPassword::class)->name('password.reset');
 });
 
 Route::post('/logout', function () {
@@ -34,6 +36,7 @@ Route::middleware('auth')->group(function () {
 Route::middleware(['auth', 'verified.optional'])->group(function () {
     Route::get('/dashboard', Livewire\Dashboard::class)
         ->middleware('permission:dashboard.read')->name('dashboard');
+    Route::get('/profile', Livewire\Profile::class)->name('profile');
 
     // Peneliti
     Route::get('/proposal', Livewire\Proposal\Index::class)

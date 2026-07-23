@@ -58,6 +58,7 @@
                     <x-mary-button :label="auth()->user()->name" icon="o-user-circle" class="btn-ghost btn-sm" />
                 </x-slot:trigger>
                 <x-mary-menu-item title="{{ auth()->user()->getRoleNames()->implode(', ') }}" icon="o-identification" />
+                <x-mary-menu-item title="Profil" icon="o-user-circle" link="{{ route('profile') }}" />
                 <x-mary-menu-item title="Keluar" icon="o-arrow-right-start-on-rectangle"
                     onclick="event.preventDefault(); document.getElementById('logout-form').submit();" />
             </x-mary-dropdown>

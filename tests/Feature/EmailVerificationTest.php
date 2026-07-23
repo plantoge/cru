@@ -6,7 +6,7 @@ use App\Livewire\Auth\Register;
 use App\Models\Menu;
 use App\Models\User;
 use Database\Seeders\RoleSeeder;
-use Illuminate\Auth\Notifications\VerifyEmail;
+use App\Notifications\VerifikasiEmail;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Notification;
 use Illuminate\Support\Facades\URL;
@@ -50,7 +50,7 @@ class EmailVerificationTest extends TestCase
         $user = User::where('email', 'baru@test.local')->firstOrFail();
 
         $this->assertNull($user->email_verified_at);
-        Notification::assertSentTo($user, VerifyEmail::class);
+        Notification::assertSentTo($user, VerifikasiEmail::class);
     }
 
     public function test_toggle_on_user_belum_verified_diarahkan_ke_notice(): void
