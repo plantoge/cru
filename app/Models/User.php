@@ -59,6 +59,11 @@ class User extends Authenticatable implements MustVerifyEmail
         ];
     }
 
+    public function sendEmailVerificationNotification(): void
+    {
+        $this->notify(new \App\Notifications\VerifikasiEmail);
+    }
+
     public function proposals()
     {
         return $this->hasMany(Proposal::class, 'user_id');
