@@ -11,7 +11,7 @@
         <x-mary-checkbox label="Ingat saya" wire:model="remember" />
         <x-captcha :question="$captchaQuestion" />
         <x-slot:actions>
-            <x-mary-button label="Daftar sebagai peneliti" link="{{ route('register') }}" class="btn-ghost" />
+            <x-mary-button label="Daftar" link="{{ route('register') }}" class="btn-ghost" />
             <x-mary-button label="Masuk" type="submit" icon="o-arrow-right-end-on-rectangle" class="btn-primary" spinner="login" />
         </x-slot:actions>
     </x-mary-form>

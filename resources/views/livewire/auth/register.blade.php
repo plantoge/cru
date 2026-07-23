@@ -5,7 +5,7 @@
         <x-mary-password label="Kata Sandi" wire:model="password" icon="o-key" hint="Minimal 8 karakter" right required />
         <x-captcha :question="$captchaQuestion" />
         <x-slot:actions>
-            <x-mary-button label="Sudah punya akun" link="{{ route('login') }}" class="btn-ghost" />
+            <x-mary-button label="punya akun" link="{{ route('login') }}" class="btn-ghost" />
             <x-mary-button label="Daftar" type="submit" icon="o-user-plus" class="btn-primary" spinner="register" />
         </x-slot:actions>
     </x-mary-form>
